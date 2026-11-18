@@ -30,6 +30,8 @@ FEATURES: list[str] = [
     "in_prev_cands", "in_next_cands", "conn_prev", "conn_prev_nearest",
     # network / candidate set
     "out_deg_v", "in_deg_u", "n_cands", "n_cands_10m", "score_rank",
+    # heading reliability and motion along the arc
+    "head_diff_vl", "head_consistency", "straightness", "along_v1", "along_v3", "along_frac3",
 ]
 
 HEADING_FILL = 90.0   # neutral value when heading is undefined (stationary / duplicate points)
@@ -50,12 +52,22 @@ def point_kinematics(net: RoadNetwork, trip: Trip) -> pd.DataFrame:
         accel = np.diff(speed_smooth, prepend=speed_smooth[0]) / np.where(dt_prev > 0, dt_prev, 1.0)
     head_s = smoothed_heading(x, y, 2)
     head_l = smoothed_heading(x, y, 5)
+    head_vl = smoothed_heading(x, y, 10)
+    # straightness over i-5..i+5: net displacement / path length (1 = straight line, ~0 = GPS wandering)
+    idx = np.arange(n); lo, hi = np.clip(idx - 5, 0, n - 1), np.clip(idx + 5, 0, n - 1)
+    cum = np.concatenate([[0.0], np.cumsum(np.nan_to_num(step[1:]))])
+    path = cum[hi] - cum[lo]
+    with np.errstate(invalid="ignore", divide="ignore"):
+        straight = np.where(path > 0, np.hypot(x[hi] - x[lo], y[hi] - y[lo]) / path, 0.0)
     with np.errstate(invalid="ignore"):
         turn = angle_diff(head_s, np.roll(head_s, 1)) / np.where(dt_prev > 0, dt_prev, 1.0)
     turn[0] = 0.0
     stationary = speed_smooth < config.STATIONARY_MS
+    consistency = angle_diff(np.nan_to_num(head_s), np.nan_to_num(head_l))
+    consistency = np.where(np.isnan(head_s) | np.isnan(head_l), 180.0, consistency)
     head_s = np.where(stationary, np.nan, head_s)
     head_l = np.where(stationary, np.nan, head_l)
+    head_vl = np.where(stationary, np.nan, head_vl)
     return pd.DataFrame({
         "point_idx": np.arange(n),
         "speed": speed, "speed_smooth": speed_smooth, "accel": np.nan_to_num(accel),
@@ -64,7 +76,8 @@ def point_kinematics(net: RoadNetwork, trip: Trip) -> pd.DataFrame:
         "is_jump": trip.track["is_jump"].to_numpy().astype(np.int8),
         "is_stationary": stationary.astype(np.int8),
         "turn_rate": np.nan_to_num(turn),
-        "head_s": head_s, "head_l": head_l,
+        "head_s": head_s, "head_l": head_l, "head_vl": head_vl,
+        "head_consistency": consistency, "straightness": np.clip(straight, 0, 1),
     })
 
 
@@ -153,6 +166,22 @@ def build_trip_features(trip: Trip, net: RoadNetwork | None = None, r: float = c
     pn = nearest[np.clip(p - 1, 0, n - 1)]
     ok = (p > 0) & (pn >= 0)
     c["conn_prev_nearest"] = (ok & ((pn == a) | (net.v[np.maximum(pn, 0)] == net.u[a]))).astype(np.int8)
+
+    # heading reliability + signed motion along the arc direction
+    hv = kin["head_vl"].to_numpy()[p]
+    c["head_diff_vl"] = np.where(np.isnan(hv), HEADING_FILL, angle_diff(np.nan_to_num(hv), net.bearing[a]))
+    c["head_consistency"] = kin["head_consistency"].to_numpy()[p]
+    c["straightness"] = kin["straightness"].to_numpy()[p]
+    ux, uy = net.vx[a] - net.ux[a], net.vy[a] - net.uy[a]
+    L_ = np.maximum(net.length[a], 1e-6); ux, uy = ux / L_, uy / L_
+    for w, col in [(1, "along_v1"), (3, "along_v3")]:
+        i0, i1 = np.clip(p - w, 0, n - 1), np.clip(p + w, 0, n - 1)
+        dtw = np.maximum(net.t[i1] - net.t[i0], 1e-6)
+        c[col] = ((net.x[i1] - net.x[i0]) * ux + (net.y[i1] - net.y[i0]) * uy) / dtw
+    i0, i1 = np.clip(p - 3, 0, n - 1), np.clip(p + 3, 0, n - 1)
+    disp = np.hypot(net.x[i1] - net.x[i0], net.y[i1] - net.y[i0])
+    along = (net.x[i1] - net.x[i0]) * ux + (net.y[i1] - net.y[i0]) * uy
+    c["along_frac3"] = np.where(disp > 0.5, along / np.maximum(disp, 1e-6), 0.0)
 
     # network / candidate set
     c["out_deg_v"] = net.out_deg[net.v[a]]
