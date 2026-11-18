@@ -1,10 +1,12 @@
 {
-  "lam": 1.0,
-  "beta": 10.0,
+  "lam": 0.30064464679139913,
+  "beta": 12.864765035056895,
   "sigma": 8.0,
-  "v_max": 60.0,
-  "gap_s": 30.0,
+  "v_max": 44.158937826556965,
+  "gap_s": 78.78130638796219,
   "backward_tol_m": 10.0,
   "route_cutoff_m": 3000.0,
-  "min_logp": -50.0
+  "min_logp": -50.0,
+  "signed_backward": 1,
+  "speed_hard": 0
 }

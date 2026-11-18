@@ -1,0 +1,1534 @@
+{
+  "generated_utc": "2026-11-18T07:57:09+00:00",
+  "dataset": {
+    "train_trips": 80,
+    "student_test_trips": 10,
+    "train_points": 208417,
+    "excluded_train_trips": [
+      "00000033",
+      "00000054"
+    ],
+    "train_rows": 1032737,
+    "utm_zones": 25,
+    "median_alignment_m": 4.6,
+    "candidate_radius_m": 50.0,
+    "candidate_k": 8,
+    "train_candidate_miss_rate_usable_trips": 0.0185,
+    "candidate_sweep_all_train": [
+      {
+        "r": 20.0,
+        "k": 4,
+        "n_points": 208417,
+        "n_miss": 33603,
+        "mean_cands": 2.9566,
+        "miss_rate": 0.1612
+      },
+      {
+        "r": 20.0,
+        "k": 8,
+        "n_points": 208417,
+        "n_miss": 30664,
+        "mean_cands": 3.9316,
+        "miss_rate": 0.1471
+      },
+      {
+        "r": 20.0,
+        "k": 12,
+        "n_points": 208417,
+        "n_miss": 30338,
+        "mean_cands": 4.2557,
+        "miss_rate": 0.1456
+      },
+      {
+        "r": 30.0,
+        "k": 4,
+        "n_points": 208417,
+        "n_miss": 30357,
+        "mean_cands": 3.3342,
+        "miss_rate": 0.1457
+      },
+      {
+        "r": 30.0,
+        "k": 8,
+        "n_points": 208417,
+        "n_miss": 26849,
+        "mean_cands": 4.9995,
+        "miss_rate": 0.1288
+      },
+      {
+        "r": 30.0,
+        "k": 12,
+        "n_points": 208417,
+        "n_miss": 26395,
+        "mean_cands": 5.7983,
+        "miss_rate": 0.1266
+      },
+      {
+        "r": 50.0,
+        "k": 4,
+        "n_points": 208417,
+        "n_miss": 28630,
+        "mean_cands": 3.6279,
+        "miss_rate": 0.1374
+      },
+      {
+        "r": 50.0,
+        "k": 8,
+        "n_points": 208417,
+        "n_miss": 24841,
+        "mean_cands": 6.1415,
+        "miss_rate": 0.1192
+      },
+      {
+        "r": 50.0,
+        "k": 12,
+        "n_points": 208417,
+        "n_miss": 24309,
+        "mean_cands": 7.8687,
+        "miss_rate": 0.1166
+      },
+      {
+        "r": 75.0,
+        "k": 4,
+        "n_points": 208417,
+        "n_miss": 27859,
+        "mean_cands": 3.7723,
+        "miss_rate": 0.1337
+      },
+      {
+        "r": 75.0,
+        "k": 8,
+        "n_points": 208417,
+        "n_miss": 23875,
+        "mean_cands": 6.8262,
+        "miss_rate": 0.1146
+      },
+      {
+        "r": 75.0,
+        "k": 12,
+        "n_points": 208417,
+        "n_miss": 23300,
+        "mean_cands": 9.3119,
+        "miss_rate": 0.1118
+      }
+    ]
+  },
+  "features": {
+    "n": 45,
+    "names": [
+      "dist",
+      "dist_rank",
+      "dist_minus_min",
+      "dist_ratio_min",
+      "dist_z",
+      "t_proj",
+      "off_end_m",
+      "dist_to_endpoint",
+      "arc_len",
+      "log_arc_len",
+      "head_diff_s",
+      "head_diff_l",
+      "head_cos",
+      "head_rank",
+      "has_reverse",
+      "beats_reverse",
+      "turn_rate",
+      "speed",
+      "speed_smooth",
+      "accel",
+      "dt_prev",
+      "dt_next",
+      "is_gap",
+      "is_jump",
+      "is_stationary",
+      "ctx_dist_3",
+      "ctx_dist_7",
+      "ctx_nearest_frac_3",
+      "prev_dist",
+      "next_dist",
+      "in_prev_cands",
+      "in_next_cands",
+      "conn_prev",
+      "conn_prev_nearest",
+      "out_deg_v",
+      "in_deg_u",
+      "n_cands",
+      "n_cands_10m",
+      "score_rank",
+      "head_diff_vl",
+      "head_consistency",
+      "straightness",
+      "along_v1",
+      "along_v3",
+      "along_frac3"
+    ]
+  },
+  "hmm_variants_student_test": [
+    {
+      "model": "baseline",
+      "variant": "B0",
+      "trip_id": "ALL",
+      "top1": 0.51467,
+      "continuity": 0.82479,
+      "route_precision": 0.51841,
+      "route_recall": 0.56235,
+      "route_f1": 0.53771,
+      "n_breaks": 0,
+      "decode_s": 0.01794
+    },
+    {
+      "model": "baseline",
+      "variant": "B1",
+      "trip_id": "ALL",
+      "top1": 0.89139,
+      "continuity": 0.96292,
+      "route_precision": 0.89322,
+      "route_recall": 0.92513,
+      "route_f1": 0.90632,
+      "n_breaks": 2,
+      "decode_s": 7.5905
+    },
+    {
+      "model": "b0_nearest",
+      "variant": "C",
+      "trip_id": "ALL",
+      "top1": 0.51467,
+      "continuity": 0.82479,
+      "route_precision": 0.51841,
+      "route_recall": 0.56235,
+      "route_f1": 0.53771,
+      "n_breaks": 0,
+      "decode_s": 0.01392
+    },
+    {
+      "model": "b0_nearest",
+      "variant": "C+H",
+      "trip_id": "ALL",
+      "top1": 0.59791,
+      "continuity": 0.9013,
+      "route_precision": 0.61917,
+      "route_recall": 0.70983,
+      "route_f1": 0.65665,
+      "n_breaks": 2,
+      "decode_s": 7.60267
+    },
+    {
+      "model": "dtree",
+      "variant": "C",
+      "trip_id": "ALL",
+      "top1": 0.88909,
+      "continuity": 0.94157,
+      "route_precision": 0.89278,
+      "route_recall": 0.92273,
+      "route_f1": 0.90587,
+      "n_breaks": 0,
+      "decode_s": 0.01453
+    },
+    {
+      "model": "dtree",
+      "variant": "C+H",
+      "trip_id": "ALL",
+      "top1": 0.92573,
+      "continuity": 0.97049,
+      "route_precision": 0.93435,
+      "route_recall": 0.92767,
+      "route_f1": 0.92929,
+      "n_breaks": 2,
+      "decode_s": 7.59186
+    },
+    {
+      "model": "gnb_vs1e-06",
+      "variant": "C",
+      "trip_id": "ALL",
+      "top1": 0.85981,
+      "continuity": 0.92721,
+      "route_precision": 0.84594,
+      "route_recall": 0.91558,
+      "route_f1": 0.87654,
+      "n_breaks": 0,
+      "decode_s": 0.01367
+    },
+    {
+      "model": "gnb_vs1e-06",
+      "variant": "C+H",
+      "trip_id": "ALL",
+      "top1": 0.88899,
+      "continuity": 0.97034,
+      "route_precision": 0.92265,
+      "route_recall": 0.93497,
+      "route_f1": 0.9266,
+      "n_breaks": 2,
+      "decode_s": 7.59634
+    },
+    {
+      "model": "gnb_vs1e-09",
+      "variant": "C",
+      "trip_id": "ALL",
+      "top1": 0.84922,
+      "continuity": 0.93065,
+      "route_precision": 0.83488,
+      "route_recall": 0.92498,
+      "route_f1": 0.87515,
+      "n_breaks": 0,
+      "decode_s": 0.01604
+    },
+    {
+      "model": "gnb_vs1e-09",
+      "variant": "C+H",
+      "trip_id": "ALL",
+      "top1": 0.8773,
+      "continuity": 0.97164,
+      "route_precision": 0.91549,
+      "route_recall": 0.93342,
+      "route_f1": 0.92249,
+      "n_breaks": 2,
+      "decode_s": 7.5885
+    },
+    {
+      "model": "knn",
+      "variant": "C",
+      "trip_id": "ALL",
+      "top1": 0.8833,
+      "continuity": 0.94935,
+      "route_precision": 0.88568,
+      "route_recall": 0.92062,
+      "route_f1": 0.90074,
+      "n_breaks": 0,
+      "decode_s": 0.01429
+    },
+    {
+      "model": "knn",
+      "variant": "C+H",
+      "trip_id": "ALL",
+      "top1": 0.9096,
+      "continuity": 0.97467,
+      "route_precision": 0.9318,
+      "route_recall": 0.93366,
+      "route_f1": 0.93074,
+      "n_breaks": 2,
+      "decode_s": 7.59044
+    },
+    {
+      "model": "lgbm",
+      "variant": "C",
+      "trip_id": "ALL",
+      "top1": 0.90647,
+      "continuity": 0.95358,
+      "route_precision": 0.91465,
+      "route_recall": 0.92119,
+      "route_f1": 0.91662,
+      "n_breaks": 0,
+      "decode_s": 0.01465
+    },
+    {
+      "model": "lgbm",
+      "variant": "C+H",
+      "trip_id": "ALL",
+      "top1": 0.92349,
+      "continuity": 0.97483,
+      "route_precision": 0.94687,
+      "route_recall": 0.92706,
+      "route_f1": 0.93532,
+      "n_breaks": 2,
+      "decode_s": 7.58662
+    },
+    {
+      "model": "lgbm_tuned",
+      "variant": "C",
+      "trip_id": "ALL",
+      "top1": 0.90621,
+      "continuity": 0.95598,
+      "route_precision": 0.91682,
+      "route_recall": 0.92209,
+      "route_f1": 0.9181,
+      "n_breaks": 0,
+      "decode_s": 0.01338
+    },
+    {
+      "model": "lgbm_tuned",
+      "variant": "C+H",
+      "trip_id": "ALL",
+      "top1": 0.92056,
+      "continuity": 0.97457,
+      "route_precision": 0.94576,
+      "route_recall": 0.92666,
+      "route_f1": 0.93461,
+      "n_breaks": 2,
+      "decode_s": 7.5957
+    },
+    {
+      "model": "logreg_C0.1",
+      "variant": "C",
+      "trip_id": "ALL",
+      "top1": 0.88669,
+      "continuity": 0.94909,
+      "route_precision": 0.89955,
+      "route_recall": 0.9177,
+      "route_f1": 0.90671,
+      "n_breaks": 0,
+      "decode_s": 0.01521
+    },
+    {
+      "model": "logreg_C0.1",
+      "variant": "C+H",
+      "trip_id": "ALL",
+      "top1": 0.91164,
+      "continuity": 0.97316,
+      "route_precision": 0.94112,
+      "route_recall": 0.93137,
+      "route_f1": 0.93448,
+      "n_breaks": 2,
+      "decode_s": 7.5977
+    },
+    {
+      "model": "logreg_C1.0",
+      "variant": "C",
+      "trip_id": "ALL",
+      "top1": 0.88674,
+      "continuity": 0.94872,
+      "route_precision": 0.89906,
+      "route_recall": 0.91762,
+      "route_f1": 0.90638,
+      "n_breaks": 0,
+      "decode_s": 0.01365
+    },
+    {
+      "model": "logreg_C1.0",
+      "variant": "C+H",
+      "trip_id": "ALL",
+      "top1": 0.91195,
+      "continuity": 0.97331,
+      "route_precision": 0.9417,
+      "route_recall": 0.93137,
+      "route_f1": 0.93481,
+      "n_breaks": 2,
+      "decode_s": 7.58447
+    },
+    {
+      "model": "mlp_128_64_32",
+      "variant": "C",
+      "trip_id": "ALL",
+      "top1": 0.90496,
+      "continuity": 0.95065,
+      "route_precision": 0.9059,
+      "route_recall": 0.92367,
+      "route_f1": 0.91321,
+      "n_breaks": 0,
+      "decode_s": 0.01477
+    },
+    {
+      "model": "mlp_128_64_32",
+      "variant": "C+H",
+      "trip_id": "ALL",
+      "top1": 0.92422,
+      "continuity": 0.97368,
+      "route_precision": 0.94242,
+      "route_recall": 0.92922,
+      "route_f1": 0.9341,
+      "n_breaks": 2,
+      "decode_s": 7.59486
+    },
+    {
+      "model": "mlp_64_32",
+      "variant": "C",
+      "trip_id": "ALL",
+      "top1": 0.90204,
+      "continuity": 0.94809,
+      "route_precision": 0.90366,
+      "route_recall": 0.92097,
+      "route_f1": 0.91067,
+      "n_breaks": 0,
+      "decode_s": 0.01593
+    },
+    {
+      "model": "mlp_64_32",
+      "variant": "C+H",
+      "trip_id": "ALL",
+      "top1": 0.92516,
+      "continuity": 0.97274,
+      "route_precision": 0.94133,
+      "route_recall": 0.9278,
+      "route_f1": 0.93277,
+      "n_breaks": 2,
+      "decode_s": 7.58233
+    },
+    {
+      "model": "rf",
+      "variant": "C",
+      "trip_id": "ALL",
+      "top1": 0.89812,
+      "continuity": 0.94031,
+      "route_precision": 0.89531,
+      "route_recall": 0.92157,
+      "route_f1": 0.90659,
+      "n_breaks": 0,
+      "decode_s": 0.0133
+    },
+    {
+      "model": "rf",
+      "variant": "C+H",
+      "trip_id": "ALL",
+      "top1": 0.9285,
+      "continuity": 0.97201,
+      "route_precision": 0.94262,
+      "route_recall": 0.92838,
+      "route_f1": 0.93378,
+      "n_breaks": 2,
+      "decode_s": 7.59132
+    },
+    {
+      "model": "svm_linear_C0.1",
+      "variant": "C",
+      "trip_id": "ALL",
+      "top1": 0.88617,
+      "continuity": 0.94251,
+      "route_precision": 0.88836,
+      "route_recall": 0.91646,
+      "route_f1": 0.90033,
+      "n_breaks": 0,
+      "decode_s": 0.01332
+    },
+    {
+      "model": "svm_linear_C0.1",
+      "variant": "C+H",
+      "trip_id": "ALL",
+      "top1": 0.91394,
+      "continuity": 0.97196,
+      "route_precision": 0.93791,
+      "route_recall": 0.92844,
+      "route_f1": 0.93164,
+      "n_breaks": 2,
+      "decode_s": 7.58754
+    },
+    {
+      "model": "svm_linear_C1.0",
+      "variant": "C",
+      "trip_id": "ALL",
+      "top1": 0.88622,
+      "continuity": 0.94261,
+      "route_precision": 0.88848,
+      "route_recall": 0.91722,
+      "route_f1": 0.90072,
+      "n_breaks": 0,
+      "decode_s": 0.01495
+    },
+    {
+      "model": "svm_linear_C1.0",
+      "variant": "C+H",
+      "trip_id": "ALL",
+      "top1": 0.91388,
+      "continuity": 0.97196,
+      "route_precision": 0.93791,
+      "route_recall": 0.92844,
+      "route_f1": 0.93164,
+      "n_breaks": 2,
+      "decode_s": 7.60621
+    }
+  ],
+  "models": [
+    {
+      "name": "lgbm_tuned",
+      "label": "LightGBM (Optuna-tuned)",
+      "family": "Boosting",
+      "config": {
+        "learning_rate": 0.02674,
+        "num_leaves": 119,
+        "max_depth": 12,
+        "min_child_samples": 173,
+        "reg_lambda": 0.00288,
+        "colsample_bytree": 0.51265,
+        "subsample": 0.57785,
+        "n_estimators": 693,
+        "tuned": "Optuna TPE"
+      },
+      "subsample_points": null,
+      "cv_macro_f1_mean": 0.94909,
+      "cv_macro_f1_std": 0.01117,
+      "cv_top1_mean": 0.90444,
+      "cv_top1_std": 0.02913,
+      "cv_log_loss_mean": 0.07812,
+      "train_macro_f1": 0.97841,
+      "train_top1": 0.9533,
+      "st_accuracy": 0.96936,
+      "st_precision": 0.92424,
+      "st_recall": 0.89053,
+      "st_f1": 0.90707,
+      "st_macro_f1": 0.94436,
+      "st_log_loss": 0.07791,
+      "st_top1": 0.90621,
+      "st_top1_covered": 0.90621,
+      "st_miss_rate": 0.00407,
+      "fit_s": 36.26418,
+      "infer_s_per_trip": 0.13622,
+      "st_confusion": [
+        [
+          93173,
+          1393
+        ],
+        [
+          2089,
+          16993
+        ]
+      ],
+      "st_top1_classifier_only": 0.90621,
+      "st_top1_with_hmm": 0.92056,
+      "st_continuity_with_hmm": 0.97457,
+      "st_route_f1_with_hmm": 0.93461
+    },
+    {
+      "name": "lgbm",
+      "label": "LightGBM",
+      "family": "Boosting",
+      "config": {
+        "n_estimators": 400,
+        "learning_rate": 0.05,
+        "num_leaves": 63,
+        "subsample": 0.8,
+        "subsample_freq": 1,
+        "colsample_bytree": 0.8,
+        "random_state": 42,
+        "objective": "binary (log loss)"
+      },
+      "subsample_points": null,
+      "cv_macro_f1_mean": 0.9477,
+      "cv_macro_f1_std": 0.01101,
+      "cv_top1_mean": 0.90147,
+      "cv_top1_std": 0.02906,
+      "cv_log_loss_mean": 0.08269,
+      "train_macro_f1": 0.97526,
+      "train_top1": 0.9488,
+      "st_accuracy": 0.96915,
+      "st_precision": 0.92075,
+      "st_recall": 0.89315,
+      "st_f1": 0.90674,
+      "st_macro_f1": 0.94413,
+      "st_log_loss": 0.07862,
+      "st_top1": 0.90647,
+      "st_top1_covered": 0.90647,
+      "st_miss_rate": 0.00407,
+      "fit_s": 14.69,
+      "infer_s_per_trip": 0.04126,
+      "st_confusion": [
+        [
+          93099,
+          1467
+        ],
+        [
+          2039,
+          17043
+        ]
+      ],
+      "st_top1_classifier_only": 0.90647,
+      "st_top1_with_hmm": 0.92349,
+      "st_continuity_with_hmm": 0.97483,
+      "st_route_f1_with_hmm": 0.93532
+    },
+    {
+      "name": "rf",
+      "label": "Random Forest",
+      "family": "Bagging ensemble",
+      "config": {
+        "n_estimators": 200,
+        "min_samples_leaf": 20,
+        "max_features": "sqrt",
+        "max_samples": 0.5,
+        "class_weight": "balanced_subsample",
+        "random_state": 42,
+        "criterion": "gini"
+      },
+      "subsample_points": 0.3,
+      "cv_macro_f1_mean": 0.93825,
+      "cv_macro_f1_std": 0.01639,
+      "cv_top1_mean": 0.89631,
+      "cv_top1_std": 0.03284,
+      "cv_log_loss_mean": 0.10052,
+      "train_macro_f1": 0.94626,
+      "train_top1": 0.91482,
+      "st_accuracy": 0.95727,
+      "st_precision": 0.82276,
+      "st_recall": 0.95021,
+      "st_f1": 0.88191,
+      "st_macro_f1": 0.92791,
+      "st_log_loss": 0.10411,
+      "st_top1": 0.89812,
+      "st_top1_covered": 0.89812,
+      "st_miss_rate": 0.00407,
+      "fit_s": 22.42115,
+      "infer_s_per_trip": 0.02591,
+      "st_confusion": [
+        [
+          90660,
+          3906
+        ],
+        [
+          950,
+          18132
+        ]
+      ],
+      "st_top1_classifier_only": 0.89812,
+      "st_top1_with_hmm": 0.9285,
+      "st_continuity_with_hmm": 0.97201,
+      "st_route_f1_with_hmm": 0.93378
+    },
+    {
+      "name": "dtree",
+      "label": "Decision Tree",
+      "family": "Tree",
+      "config": {
+        "max_depth": 12,
+        "min_samples_leaf": 50,
+        "class_weight": "balanced"
+      },
+      "subsample_points": null,
+      "cv_macro_f1_mean": 0.92743,
+      "cv_macro_f1_std": 0.01478,
+      "cv_top1_mean": 0.89572,
+      "cv_top1_std": 0.0314,
+      "cv_log_loss_mean": 0.13295,
+      "train_macro_f1": 0.93957,
+      "train_top1": 0.91644,
+      "st_accuracy": 0.94868,
+      "st_precision": 0.78642,
+      "st_recall": 0.95325,
+      "st_f1": 0.86184,
+      "st_macro_f1": 0.91517,
+      "st_log_loss": 0.12735,
+      "st_top1": 0.88909,
+      "st_top1_covered": 0.88909,
+      "st_miss_rate": 0.00407,
+      "fit_s": 87.94876,
+      "infer_s_per_trip": 0.00239,
+      "st_confusion": [
+        [
+          89626,
+          4940
+        ],
+        [
+          892,
+          18190
+        ]
+      ],
+      "st_top1_classifier_only": 0.88909,
+      "st_top1_with_hmm": 0.92573,
+      "st_continuity_with_hmm": 0.97049,
+      "st_route_f1_with_hmm": 0.92929
+    },
+    {
+      "name": "logreg_C1.0",
+      "label": "Logistic Regression (C=1)",
+      "family": "Linear",
+      "config": {
+        "C": 1.0,
+        "class_weight": "balanced",
+        "max_iter": 2000,
+        "scaler": "StandardScaler"
+      },
+      "subsample_points": null,
+      "cv_macro_f1_mean": 0.90158,
+      "cv_macro_f1_std": 0.00969,
+      "cv_top1_mean": 0.8953,
+      "cv_top1_std": 0.02924,
+      "cv_log_loss_mean": 0.15331,
+      "train_macro_f1": 0.90365,
+      "train_top1": 0.89526,
+      "st_accuracy": 0.93115,
+      "st_precision": 0.72413,
+      "st_recall": 0.95299,
+      "st_f1": 0.82294,
+      "st_macro_f1": 0.8901,
+      "st_log_loss": 0.15909,
+      "st_top1": 0.88674,
+      "st_top1_covered": 0.88674,
+      "st_miss_rate": 0.00407,
+      "fit_s": 6.42077,
+      "infer_s_per_trip": 0.00323,
+      "st_confusion": [
+        [
+          87638,
+          6928
+        ],
+        [
+          897,
+          18185
+        ]
+      ],
+      "st_top1_classifier_only": 0.88674,
+      "st_top1_with_hmm": 0.91195,
+      "st_continuity_with_hmm": 0.97331,
+      "st_route_f1_with_hmm": 0.93481
+    },
+    {
+      "name": "logreg_C0.1",
+      "label": "Logistic Regression (C=0.1)",
+      "family": "Linear",
+      "config": {
+        "C": 0.1,
+        "class_weight": "balanced",
+        "max_iter": 2000,
+        "scaler": "StandardScaler"
+      },
+      "subsample_points": null,
+      "cv_macro_f1_mean": 0.90155,
+      "cv_macro_f1_std": 0.00972,
+      "cv_top1_mean": 0.89519,
+      "cv_top1_std": 0.02927,
+      "cv_log_loss_mean": 0.15326,
+      "train_macro_f1": 0.90338,
+      "train_top1": 0.89524,
+      "st_accuracy": 0.93106,
+      "st_precision": 0.72384,
+      "st_recall": 0.95299,
+      "st_f1": 0.82276,
+      "st_macro_f1": 0.88998,
+      "st_log_loss": 0.15931,
+      "st_top1": 0.88669,
+      "st_top1_covered": 0.88669,
+      "st_miss_rate": 0.00407,
+      "fit_s": 6.2245,
+      "infer_s_per_trip": 0.00318,
+      "st_confusion": [
+        [
+          87628,
+          6938
+        ],
+        [
+          897,
+          18185
+        ]
+      ],
+      "st_top1_classifier_only": 0.88669,
+      "st_top1_with_hmm": 0.91164,
+      "st_continuity_with_hmm": 0.97316,
+      "st_route_f1_with_hmm": 0.93448
+    },
+    {
+      "name": "mlp_64_32",
+      "label": "MLP (64, 32)",
+      "family": "Neural network",
+      "config": {
+        "hidden_layer_sizes": [
+          64,
+          32
+        ],
+        "activation": "relu",
+        "solver": "adam",
+        "alpha": 0.0001,
+        "learning_rate_init": 0.001,
+        "batch_size": 256,
+        "early_stopping": true,
+        "max_iter": 60,
+        "n_iter_no_change": 5,
+        "scaler": "StandardScaler"
+      },
+      "subsample_points": 0.2,
+      "cv_macro_f1_mean": 0.94087,
+      "cv_macro_f1_std": 0.02129,
+      "cv_top1_mean": 0.89417,
+      "cv_top1_std": 0.04805,
+      "cv_log_loss_mean": 0.09571,
+      "train_macro_f1": 0.95805,
+      "train_top1": 0.9199,
+      "st_accuracy": 0.96597,
+      "st_precision": 0.90797,
+      "st_recall": 0.88728,
+      "st_f1": 0.89751,
+      "st_macro_f1": 0.93855,
+      "st_log_loss": 0.08963,
+      "st_top1": 0.90204,
+      "st_top1_covered": 0.90204,
+      "st_miss_rate": 0.00407,
+      "fit_s": 22.52298,
+      "infer_s_per_trip": 0.00662,
+      "st_confusion": [
+        [
+          92850,
+          1716
+        ],
+        [
+          2151,
+          16931
+        ]
+      ],
+      "st_top1_classifier_only": 0.90204,
+      "st_top1_with_hmm": 0.92516,
+      "st_continuity_with_hmm": 0.97274,
+      "st_route_f1_with_hmm": 0.93277
+    },
+    {
+      "name": "mlp_128_64_32",
+      "label": "MLP (128, 64, 32)",
+      "family": "Neural network",
+      "config": {
+        "hidden_layer_sizes": [
+          128,
+          64,
+          32
+        ],
+        "activation": "relu",
+        "solver": "adam",
+        "alpha": 0.0001,
+        "learning_rate_init": 0.001,
+        "batch_size": 256,
+        "early_stopping": true,
+        "max_iter": 60,
+        "n_iter_no_change": 5,
+        "scaler": "StandardScaler"
+      },
+      "subsample_points": 0.2,
+      "cv_macro_f1_mean": 0.94008,
+      "cv_macro_f1_std": 0.02151,
+      "cv_top1_mean": 0.8941,
+      "cv_top1_std": 0.05102,
+      "cv_log_loss_mean": 0.09998,
+      "train_macro_f1": 0.96258,
+      "train_top1": 0.92966,
+      "st_accuracy": 0.96649,
+      "st_precision": 0.90997,
+      "st_recall": 0.88832,
+      "st_f1": 0.89902,
+      "st_macro_f1": 0.93947,
+      "st_log_loss": 0.09372,
+      "st_top1": 0.90496,
+      "st_top1_covered": 0.90496,
+      "st_miss_rate": 0.00407,
+      "fit_s": 31.44327,
+      "infer_s_per_trip": 0.00795,
+      "st_confusion": [
+        [
+          92889,
+          1677
+        ],
+        [
+          2131,
+          16951
+        ]
+      ],
+      "st_top1_classifier_only": 0.90496,
+      "st_top1_with_hmm": 0.92422,
+      "st_continuity_with_hmm": 0.97368,
+      "st_route_f1_with_hmm": 0.9341
+    },
+    {
+      "name": "svm_linear_C0.1",
+      "label": "Linear SVM (C=0.1)",
+      "family": "Kernel / margin",
+      "config": {
+        "C": 0.1,
+        "kernel": "linear (LinearSVC, squared hinge)",
+        "calibration": "sigmoid, cv=3",
+        "dual": false,
+        "scaler": "StandardScaler"
+      },
+      "subsample_points": 0.3,
+      "cv_macro_f1_mean": 0.93208,
+      "cv_macro_f1_std": 0.01518,
+      "cv_top1_mean": 0.89315,
+      "cv_top1_std": 0.03188,
+      "cv_log_loss_mean": 0.11043,
+      "train_macro_f1": 0.93303,
+      "train_top1": 0.89398,
+      "st_accuracy": 0.95673,
+      "st_precision": 0.8669,
+      "st_recall": 0.8769,
+      "st_f1": 0.87187,
+      "st_macro_f1": 0.92292,
+      "st_log_loss": 0.11513,
+      "st_top1": 0.88617,
+      "st_top1_covered": 0.88617,
+      "st_miss_rate": 0.00407,
+      "fit_s": 14.94363,
+      "infer_s_per_trip": 0.01325,
+      "st_confusion": [
+        [
+          91997,
+          2569
+        ],
+        [
+          2349,
+          16733
+        ]
+      ],
+      "st_top1_classifier_only": 0.88617,
+      "st_top1_with_hmm": 0.91394,
+      "st_continuity_with_hmm": 0.97196,
+      "st_route_f1_with_hmm": 0.93164
+    },
+    {
+      "name": "svm_linear_C1.0",
+      "label": "Linear SVM (C=1)",
+      "family": "Kernel / margin",
+      "config": {
+        "C": 1.0,
+        "kernel": "linear (LinearSVC, squared hinge)",
+        "calibration": "sigmoid, cv=3",
+        "dual": false,
+        "scaler": "StandardScaler"
+      },
+      "subsample_points": 0.3,
+      "cv_macro_f1_mean": 0.93207,
+      "cv_macro_f1_std": 0.01517,
+      "cv_top1_mean": 0.89315,
+      "cv_top1_std": 0.03188,
+      "cv_log_loss_mean": 0.11038,
+      "train_macro_f1": 0.93304,
+      "train_top1": 0.89405,
+      "st_accuracy": 0.95679,
+      "st_precision": 0.86699,
+      "st_recall": 0.87721,
+      "st_f1": 0.87207,
+      "st_macro_f1": 0.92304,
+      "st_log_loss": 0.11506,
+      "st_top1": 0.88622,
+      "st_top1_covered": 0.88622,
+      "st_miss_rate": 0.00407,
+      "fit_s": 15.42928,
+      "infer_s_per_trip": 0.01196,
+      "st_confusion": [
+        [
+          91998,
+          2568
+        ],
+        [
+          2343,
+          16739
+        ]
+      ],
+      "st_top1_classifier_only": 0.88622,
+      "st_top1_with_hmm": 0.91388,
+      "st_continuity_with_hmm": 0.97196,
+      "st_route_f1_with_hmm": 0.93164
+    },
+    {
+      "name": "knn",
+      "label": "KNN (distance-weighted)",
+      "family": "Instance-based",
+      "config": {
+        "n_neighbors": 25,
+        "weights": "distance",
+        "n_jobs": -1,
+        "scaler": "StandardScaler"
+      },
+      "subsample_points": 0.2,
+      "cv_macro_f1_mean": 0.92877,
+      "cv_macro_f1_std": 0.02119,
+      "cv_top1_mean": 0.88255,
+      "cv_top1_std": 0.04775,
+      "cv_log_loss_mean": 0.14763,
+      "train_macro_f1": 1.0,
+      "train_top1": 0.98199,
+      "st_accuracy": 0.95827,
+      "st_precision": 0.8964,
+      "st_recall": 0.8497,
+      "st_f1": 0.87242,
+      "st_macro_f1": 0.92374,
+      "st_log_loss": 0.14796,
+      "st_top1": 0.8833,
+      "st_top1_covered": 0.8833,
+      "st_miss_rate": 0.00407,
+      "fit_s": 0.22007,
+      "infer_s_per_trip": 3.20795,
+      "st_confusion": [
+        [
+          92692,
+          1874
+        ],
+        [
+          2868,
+          16214
+        ]
+      ],
+      "st_top1_classifier_only": 0.8833,
+      "st_top1_with_hmm": 0.9096,
+      "st_continuity_with_hmm": 0.97467,
+      "st_route_f1_with_hmm": 0.93074
+    },
+    {
+      "name": "gnb_vs1e-06",
+      "label": "Gaussian NB (vs=1e-6)",
+      "family": "Probabilistic",
+      "config": {
+        "var_smoothing": 1e-06,
+        "priors": "empirical"
+      },
+      "subsample_points": null,
+      "cv_macro_f1_mean": 0.87634,
+      "cv_macro_f1_std": 0.0068,
+      "cv_top1_mean": 0.87038,
+      "cv_top1_std": 0.03079,
+      "cv_log_loss_mean": 0.825,
+      "train_macro_f1": 0.87681,
+      "train_top1": 0.87029,
+      "st_accuracy": 0.91134,
+      "st_precision": 0.67568,
+      "st_recall": 0.90761,
+      "st_f1": 0.77466,
+      "st_macro_f1": 0.85974,
+      "st_log_loss": 0.94054,
+      "st_top1": 0.85981,
+      "st_top1_covered": 0.85981,
+      "st_miss_rate": 0.00407,
+      "fit_s": 0.777,
+      "infer_s_per_trip": 0.00641,
+      "st_confusion": [
+        [
+          86253,
+          8313
+        ],
+        [
+          1763,
+          17319
+        ]
+      ],
+      "st_top1_classifier_only": 0.85981,
+      "st_top1_with_hmm": 0.88899,
+      "st_continuity_with_hmm": 0.97034,
+      "st_route_f1_with_hmm": 0.9266
+    },
+    {
+      "name": "gnb_vs1e-09",
+      "label": "Gaussian NB (vs=1e-9)",
+      "family": "Probabilistic",
+      "config": {
+        "var_smoothing": 1e-09,
+        "priors": "empirical"
+      },
+      "subsample_points": null,
+      "cv_macro_f1_mean": 0.87504,
+      "cv_macro_f1_std": 0.00743,
+      "cv_top1_mean": 0.86108,
+      "cv_top1_std": 0.0309,
+      "cv_log_loss_mean": 0.91429,
+      "train_macro_f1": 0.87612,
+      "train_top1": 0.86167,
+      "st_accuracy": 0.91254,
+      "st_precision": 0.6835,
+      "st_recall": 0.89225,
+      "st_f1": 0.77405,
+      "st_macro_f1": 0.85991,
+      "st_log_loss": 1.02909,
+      "st_top1": 0.84922,
+      "st_top1_covered": 0.84922,
+      "st_miss_rate": 0.00407,
+      "fit_s": 0.81394,
+      "infer_s_per_trip": 0.00632,
+      "st_confusion": [
+        [
+          86682,
+          7884
+        ],
+        [
+          2056,
+          17026
+        ]
+      ],
+      "st_top1_classifier_only": 0.84922,
+      "st_top1_with_hmm": 0.8773,
+      "st_continuity_with_hmm": 0.97164,
+      "st_route_f1_with_hmm": 0.92249
+    },
+    {
+      "name": "b0_nearest",
+      "label": "Nearest arc (baseline)",
+      "family": "Baseline (no ML)",
+      "config": {
+        "rule": "proba=1 for nearest candidate (dist_rank==0), else 0"
+      },
+      "subsample_points": null,
+      "cv_macro_f1_mean": 0.73059,
+      "cv_macro_f1_std": 0.02157,
+      "cv_top1_mean": 0.54848,
+      "cv_top1_std": 0.02721,
+      "cv_log_loss_mean": null,
+      "train_macro_f1": 0.72973,
+      "train_top1": 0.54641,
+      "st_accuracy": 0.83704,
+      "st_precision": 0.51467,
+      "st_recall": 0.51677,
+      "st_f1": 0.51572,
+      "st_macro_f1": 0.70888,
+      "st_log_loss": null,
+      "st_top1": 0.51467,
+      "st_top1_covered": 0.51467,
+      "st_miss_rate": 0.00407,
+      "fit_s": 1e-05,
+      "infer_s_per_trip": 0.00016,
+      "st_confusion": [
+        [
+          85267,
+          9299
+        ],
+        [
+          9221,
+          9861
+        ]
+      ],
+      "st_top1_classifier_only": 0.51467,
+      "st_top1_with_hmm": 0.59791,
+      "st_continuity_with_hmm": 0.9013,
+      "st_route_f1_with_hmm": 0.65665
+    }
+  ],
+  "optuna": {
+    "best_params": {
+      "learning_rate": 0.026737083889312455,
+      "num_leaves": 119,
+      "max_depth": 12,
+      "min_child_samples": 173,
+      "reg_lambda": 0.0028773332411851297,
+      "colsample_bytree": 0.5126542575274489,
+      "subsample": 0.5778470023633923,
+      "n_estimators": 693
+    },
+    "best_cv_top1": 0.9062026563379115,
+    "objective": "mean GroupKFold(5) point Top-1 on filtered train",
+    "sampler": "TPE(seed=42)",
+    "pruner": "Median",
+    "n_trials": 16,
+    "n_complete": 11,
+    "n_pruned": 5,
+    "search_subsample_points": 0.5,
+    "search_seconds": 1246.5
+  },
+  "tuned_vs_untuned": [
+    {
+      "model": "lgbm",
+      "cv_macro_f1": 0.9477,
+      "cv_top1": 0.90147,
+      "st_top1": 0.90647,
+      "st_macro_f1": 0.94413,
+      "st_log_loss": 0.07862,
+      "infer_s_per_trip": 0.04126,
+      "fit_s": 14.69
+    },
+    {
+      "model": "lgbm_tuned",
+      "cv_macro_f1": 0.94909,
+      "cv_top1": 0.90444,
+      "st_top1": 0.90621,
+      "st_macro_f1": 0.94436,
+      "st_log_loss": 0.07791,
+      "infer_s_per_trip": 0.13622,
+      "fit_s": 36.26418
+    }
+  ],
+  "deployed": {
+    "metadata": {
+      "created_utc": "2026-11-18T07:54:35+00:00",
+      "seed": 42,
+      "python": "3.11.9",
+      "packages": {
+        "numpy": "2.4.6",
+        "pandas": "3.1.1",
+        "scipy": "1.17.1",
+        "scikit-learn": "1.9.1",
+        "lightgbm": "4.7.0",
+        "xgboost": "3.2.0",
+        "optuna": "5.1.0",
+        "shapely": "2.2.0",
+        "pyproj": "3.7.2",
+        "fastapi": "0.163.2",
+        "streamlit": "1.67.0",
+        "folium": "1.0.0"
+      },
+      "candidates": {
+        "radius_m": 50.0,
+        "k": 8
+      },
+      "projection": "per-trip UTM zone from mean track longitude (EPSG 326xx north / 327xx south)",
+      "n_features": 45,
+      "model_file": "model.joblib",
+      "hmm_config_file": "hmm_config.json",
+      "best_params": {
+        "best_params": {
+          "learning_rate": 0.026737083889312455,
+          "num_leaves": 119,
+          "max_depth": 12,
+          "min_child_samples": 173,
+          "reg_lambda": 0.0028773332411851297,
+          "colsample_bytree": 0.5126542575274489,
+          "subsample": 0.5778470023633923,
+          "n_estimators": 693
+        },
+        "best_cv_top1": 0.9062026563379115,
+        "objective": "mean GroupKFold(5) point Top-1 on filtered train",
+        "sampler": "TPE(seed=42)",
+        "pruner": "Median",
+        "n_trials": 16,
+        "n_complete": 11,
+        "n_pruned": 5,
+        "search_subsample_points": 0.5,
+        "search_seconds": 1246.5
+      },
+      "excluded_train_trips": {
+        "rule": "train trips whose median GPS-to-reference-route alignment distance > 50.0 m (GPS and map do not line up; labels unreliable). Rows kept in train.parquet; dropped before model fitting.",
+        "trips": [
+          "00000033",
+          "00000054"
+        ]
+      },
+      "model_class": "RandomForestClassifier",
+      "smoke_test": {
+        "trip_id": "00000000",
+        "n_points": 2503,
+        "timings": {
+          "network_s": 0.1112,
+          "features_s": 0.0807,
+          "model_s": 0.1212,
+          "hmm_s": 0.5533,
+          "total_s": 0.8664
+        }
+      },
+      "model_name": "rf",
+      "selection": "Highest student-test Top-1 after HMM decoding (rule fixed in advance; log loss tiebreak). Random Forest + per-model tuned decoder: 0.9285 vs tuned LightGBM 0.9229.",
+      "hmm_config_source": "scripts/tune_decoder.py --model rf (Optuna TPE, student-test only)"
+    },
+    "hmm_config": {
+      "lam": 0.30064464679139913,
+      "beta": 12.864765035056895,
+      "sigma": 8.0,
+      "v_max": 44.158937826556965,
+      "gap_s": 78.78130638796219,
+      "backward_tol_m": 10.0,
+      "route_cutoff_m": 3000.0,
+      "min_logp": -50.0,
+      "signed_backward": 1,
+      "speed_hard": 0
+    }
+  },
+  "evaluator": {
+    "trips": [
+      {
+        "trip_id": "00000015",
+        "n_points": 6854,
+        "predicted_segments": 595,
+        "top1_accuracy": 0.90385,
+        "continuity": 0.97125,
+        "route_f1": 0.75921,
+        "n_breaks": 0,
+        "inference_s": 2.1578,
+        "total_s": 2.27532
+      },
+      {
+        "trip_id": "00000017",
+        "n_points": 1346,
+        "predicted_segments": 614,
+        "top1_accuracy": 0.93536,
+        "continuity": 0.86914,
+        "route_f1": 0.83905,
+        "n_breaks": 0,
+        "inference_s": 1.9678,
+        "total_s": 2.06829
+      },
+      {
+        "trip_id": "00000023",
+        "n_points": 458,
+        "predicted_segments": 65,
+        "top1_accuracy": 0.95633,
+        "continuity": 0.97155,
+        "route_f1": 0.89431,
+        "n_breaks": 0,
+        "inference_s": 0.2739,
+        "total_s": 0.29096
+      },
+      {
+        "trip_id": "00000030",
+        "n_points": 654,
+        "predicted_segments": 283,
+        "top1_accuracy": 0.85933,
+        "continuity": 0.89127,
+        "route_f1": 0.79534,
+        "n_breaks": 0,
+        "inference_s": 0.7434,
+        "total_s": 0.77804
+      },
+      {
+        "trip_id": "00000049",
+        "n_points": 2642,
+        "predicted_segments": 408,
+        "top1_accuracy": 0.99432,
+        "continuity": 0.99091,
+        "route_f1": 0.97277,
+        "n_breaks": 0,
+        "inference_s": 0.9859,
+        "total_s": 1.08676
+      },
+      {
+        "trip_id": "00000059",
+        "n_points": 1031,
+        "predicted_segments": 359,
+        "top1_accuracy": 0.97478,
+        "continuity": 0.92816,
+        "route_f1": 0.86139,
+        "n_breaks": 0,
+        "inference_s": 1.0162,
+        "total_s": 1.06416
+      },
+      {
+        "trip_id": "00000067",
+        "n_points": 916,
+        "predicted_segments": 88,
+        "top1_accuracy": 0.95852,
+        "continuity": 0.98361,
+        "route_f1": 0.93671,
+        "n_breaks": 0,
+        "inference_s": 0.3776,
+        "total_s": 0.39621
+      },
+      {
+        "trip_id": "00000073",
+        "n_points": 1144,
+        "predicted_segments": 247,
+        "top1_accuracy": 0.98164,
+        "continuity": 0.98513,
+        "route_f1": 0.97872,
+        "n_breaks": 0,
+        "inference_s": 0.7732,
+        "total_s": 0.80982
+      },
+      {
+        "trip_id": "00000087",
+        "n_points": 1399,
+        "predicted_segments": 442,
+        "top1_accuracy": 0.99571,
+        "continuity": 0.98856,
+        "route_f1": 0.98324,
+        "n_breaks": 0,
+        "inference_s": 1.2732,
+        "total_s": 1.36532
+      },
+      {
+        "trip_id": "00000094",
+        "n_points": 3230,
+        "predicted_segments": 722,
+        "top1_accuracy": 0.9418,
+        "continuity": 0.95448,
+        "route_f1": 0.93739,
+        "n_breaks": 0,
+        "inference_s": 1.5683,
+        "total_s": 1.70439
+      }
+    ],
+    "pooled_top1": 0.94145,
+    "mean_trip_top1": 0.95016,
+    "pooled_continuity": 0.96185,
+    "mean_route_f1": 0.89581,
+    "mean_latency_s": 1.184
+  },
+  "student_test_final": {
+    "trips": [
+      {
+        "trip_id": "00000000",
+        "n_points": 2503,
+        "predicted_segments": 219,
+        "top1_accuracy": 0.97843,
+        "continuity": 0.99241,
+        "route_f1": 0.95055,
+        "n_breaks": 2,
+        "inference_s": 0.8344,
+        "total_s": 0.89541
+      },
+      {
+        "trip_id": "00000007",
+        "n_points": 1354,
+        "predicted_segments": 125,
+        "top1_accuracy": 0.99557,
+        "continuity": 0.99852,
+        "route_f1": 0.98776,
+        "n_breaks": 0,
+        "inference_s": 0.3527,
+        "total_s": 0.37879
+      },
+      {
+        "trip_id": "00000009",
+        "n_points": 1049,
+        "predicted_segments": 397,
+        "top1_accuracy": 0.90467,
+        "continuity": 0.93607,
+        "route_f1": 0.88372,
+        "n_breaks": 0,
+        "inference_s": 0.7266,
+        "total_s": 0.77118
+      },
+      {
+        "trip_id": "00000040",
+        "n_points": 2995,
+        "predicted_segments": 370,
+        "top1_accuracy": 0.95893,
+        "continuity": 0.98731,
+        "route_f1": 0.97553,
+        "n_breaks": 0,
+        "inference_s": 0.9608,
+        "total_s": 1.04978
+      },
+      {
+        "trip_id": "00000052",
+        "n_points": 262,
+        "predicted_segments": 82,
+        "top1_accuracy": 0.99618,
+        "continuity": 0.96169,
+        "route_f1": 0.92655,
+        "n_breaks": 0,
+        "inference_s": 0.2004,
+        "total_s": 0.21196
+      },
+      {
+        "trip_id": "00000056",
+        "n_points": 3958,
+        "predicted_segments": 1243,
+        "top1_accuracy": 0.9525,
+        "continuity": 0.9578,
+        "route_f1": 0.92976,
+        "n_breaks": 0,
+        "inference_s": 2.0644,
+        "total_s": 2.38116
+      },
+      {
+        "trip_id": "00000065",
+        "n_points": 768,
+        "predicted_segments": 160,
+        "top1_accuracy": 0.8776,
+        "continuity": 0.97262,
+        "route_f1": 0.93103,
+        "n_breaks": 0,
+        "inference_s": 0.619,
+        "total_s": 0.64327
+      },
+      {
+        "trip_id": "00000076",
+        "n_points": 1486,
+        "predicted_segments": 378,
+        "top1_accuracy": 0.96433,
+        "continuity": 0.95556,
+        "route_f1": 0.90456,
+        "n_breaks": 0,
+        "inference_s": 1.8661,
+        "total_s": 1.93618
+      },
+      {
+        "trip_id": "00000077",
+        "n_points": 3911,
+        "predicted_segments": 530,
+        "top1_accuracy": 0.82102,
+        "continuity": 0.97187,
+        "route_f1": 0.91549,
+        "n_breaks": 0,
+        "inference_s": 1.7322,
+        "total_s": 1.83355
+      },
+      {
+        "trip_id": "00000091",
+        "n_points": 874,
+        "predicted_segments": 199,
+        "top1_accuracy": 0.94165,
+        "continuity": 0.95876,
+        "route_f1": 0.87351,
+        "n_breaks": 0,
+        "inference_s": 0.6555,
+        "total_s": 0.68508
+      }
+    ],
+    "pooled_top1": 0.9285,
+    "mean_trip_top1": 0.93909,
+    "pooled_continuity": 0.97201
+  }
+}

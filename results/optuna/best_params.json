@@ -1,0 +1,21 @@
+{
+  "best_params": {
+    "learning_rate": 0.026737083889312455,
+    "num_leaves": 119,
+    "max_depth": 12,
+    "min_child_samples": 173,
+    "reg_lambda": 0.0028773332411851297,
+    "colsample_bytree": 0.5126542575274489,
+    "subsample": 0.5778470023633923,
+    "n_estimators": 693
+  },
+  "best_cv_top1": 0.9062026563379115,
+  "objective": "mean GroupKFold(5) point Top-1 on filtered train",
+  "sampler": "TPE(seed=42)",
+  "pruner": "Median",
+  "n_trials": 16,
+  "n_complete": 11,
+  "n_pruned": 5,
+  "search_subsample_points": 0.5,
+  "search_seconds": 1246.5
+}

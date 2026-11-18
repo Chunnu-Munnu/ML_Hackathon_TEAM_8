@@ -1,5 +1,5 @@
 {
-  "created_utc": "2026-11-18T06:20:28+00:00",
+  "created_utc": "2026-11-18T07:54:35+00:00",
   "seed": 42,
   "python": "3.11.9",
   "packages": {
@@ -21,9 +21,30 @@
     "k": 8
   },
   "projection": "per-trip UTM zone from mean track longitude (EPSG 326xx north / 327xx south)",
-  "n_features": 39,
+  "n_features": 45,
   "model_file": "model.joblib",
   "hmm_config_file": "hmm_config.json",
+  "best_params": {
+    "best_params": {
+      "learning_rate": 0.026737083889312455,
+      "num_leaves": 119,
+      "max_depth": 12,
+      "min_child_samples": 173,
+      "reg_lambda": 0.0028773332411851297,
+      "colsample_bytree": 0.5126542575274489,
+      "subsample": 0.5778470023633923,
+      "n_estimators": 693
+    },
+    "best_cv_top1": 0.9062026563379115,
+    "objective": "mean GroupKFold(5) point Top-1 on filtered train",
+    "sampler": "TPE(seed=42)",
+    "pruner": "Median",
+    "n_trials": 16,
+    "n_complete": 11,
+    "n_pruned": 5,
+    "search_subsample_points": 0.5,
+    "search_seconds": 1246.5
+  },
   "excluded_train_trips": {
     "rule": "train trips whose median GPS-to-reference-route alignment distance > 50.0 m (GPS and map do not line up; labels unreliable). Rows kept in train.parquet; dropped before model fitting.",
     "trips": [
@@ -31,19 +52,19 @@
       "00000054"
     ]
   },
-  "model_class": "LGBMClassifier",
+  "model_class": "RandomForestClassifier",
   "smoke_test": {
     "trip_id": "00000000",
     "n_points": 2503,
     "timings": {
-      "network_s": 0.234,
-      "features_s": 0.1363,
-      "model_s": 0.0822,
-      "hmm_s": 0.7771,
-      "total_s": 1.2297
+      "network_s": 0.1112,
+      "features_s": 0.0807,
+      "model_s": 0.1212,
+      "hmm_s": 0.5533,
+      "total_s": 0.8664
     }
   },
-  "model_name": "lgbm",
-  "model_note": "Selected by grouped 5-fold CV on train (best Top-1 and macro F1, lowest log loss). Untuned configuration; replaced by the Optuna-tuned model after hyperparameter search.",
-  "hmm_config_note": "Default decoder parameters; replaced after decoder tuning."
+  "model_name": "rf",
+  "selection": "Highest student-test Top-1 after HMM decoding (rule fixed in advance; log loss tiebreak). Random Forest + per-model tuned decoder: 0.9285 vs tuned LightGBM 0.9229.",
+  "hmm_config_source": "scripts/tune_decoder.py --model rf (Optuna TPE, student-test only)"
 }

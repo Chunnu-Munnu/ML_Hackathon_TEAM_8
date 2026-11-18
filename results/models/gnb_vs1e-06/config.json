@@ -48,7 +48,13 @@
     "in_deg_u",
     "n_cands",
     "n_cands_10m",
-    "score_rank"
+    "score_rank",
+    "head_diff_vl",
+    "head_consistency",
+    "straightness",
+    "along_v1",
+    "along_v3",
+    "along_frac3"
   ],
   "subsample_points": null,
   "seed": 42,
