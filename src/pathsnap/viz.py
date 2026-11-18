@@ -18,7 +18,7 @@ def _gps_map(gps) -> folium.Map:
     if len(gps) == 0:
         raise ValueError("A map requires at least one GPS observation")
     points = np.asarray(gps, dtype=float)
-    fmap = folium.Map(location=points[0].tolist(), tiles="CartoDB positron", zoom_start=14)
+    fmap = folium.Map(location=points[0].tolist(), tiles="OpenStreetMap", zoom_start=14)
     fmap.fit_bounds([points.min(axis=0).tolist(), points.max(axis=0).tolist()], max_zoom=17)
 
     observations = folium.FeatureGroup(name="GPS observations").add_to(fmap)
