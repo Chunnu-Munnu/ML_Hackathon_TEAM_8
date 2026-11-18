@@ -110,7 +110,8 @@ def trip_map(
         if predicted.ndim != 1 or ((predicted < -1) | (predicted >= net.n_arcs)).any():
             raise ValueError("pred_arcs must be a sequence of valid arc IDs or -1")
         predicted = predicted[predicted >= 0]
-        predicted = predicted[np.r_[True, predicted[1:] != predicted[:-1]][:len(predicted)]]
+        if len(predicted):
+            predicted = predicted[np.r_[True, predicted[1:] != predicted[:-1]]]
         name = "Predicted route"
         _line_layer(fmap, name, net.arc_lonlat(predicted), color=PREDICTED_COLOR, weight=3)
         layers.append((name, PREDICTED_COLOR))
