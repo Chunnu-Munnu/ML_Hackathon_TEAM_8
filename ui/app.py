@@ -68,7 +68,32 @@ def main() -> None:
     api_url = st.sidebar.text_input(
         "API URL", value=os.environ.get("PATHSNAP_API", "http://localhost:8000"),
     ).strip().rstrip("/")
-    show_health(api_url)
+    ready = show_health(api_url)
+    try:
+        trips = api_json(api_url, "/trips").get("trips", [])
+    except ApiError as exc:
+        st.error(str(exc))
+        return
+    if not trips:
+        st.info("The API has no available trips.")
+        return
+
+    trip_id = st.selectbox("Trip", trips, key=f"trip:{api_url}")
+    if st.button("Reconstruct route", type="primary", disabled=not ready):
+        st.session_state.pop("prediction", None)
+        with st.spinner(f"Reconstructing trip {trip_id}..."):
+            try:
+                prediction = api_json(api_url, "/predict", body={"trip_id": trip_id})
+            except ApiError as exc:
+                st.error(str(exc))
+            else:
+                st.session_state["prediction"] = (api_url, trip_id, prediction)
+
+    saved = st.session_state.get("prediction")
+    if saved and saved[:2] == (api_url, trip_id):
+        st.success(f"Trip {trip_id} reconstructed")
+    elif not ready:
+        st.info("Reconstruction will be available when the API model and decoder are ready.")
 
 
 if __name__ == "__main__":
