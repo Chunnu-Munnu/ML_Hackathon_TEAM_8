@@ -1,0 +1,14 @@
+# data (copy locally, see README)
+data/
+results/features/
+# envs / caches
+.venv/
+venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.DS_Store
+# large model files (keep artifacts/model.joblib if < 50 MB)
+*.joblib.big
+logs/*.log
+.env
