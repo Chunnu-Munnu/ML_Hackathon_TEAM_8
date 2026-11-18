@@ -117,3 +117,11 @@ def trip_map(
         layers.append((name, PREDICTED_COLOR))
 
     return _finish_map(fmap, layers)
+
+
+def reconstruction_map(gps, predicted_segments) -> folium.Map:
+    """Map the GPS and predicted geometry returned by the API."""
+    fmap = _gps_map(gps)
+    name = "Predicted route"
+    _line_layer(fmap, name, predicted_segments, color=PREDICTED_COLOR, weight=3)
+    return _finish_map(fmap, [(name, PREDICTED_COLOR)])
