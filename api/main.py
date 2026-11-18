@@ -21,6 +21,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field
 
 from pathsnap import config
+from pathsnap.features import FEATURES
 from pathsnap.io import list_trips, load_route, load_trip
 from pathsnap.labeling import align_route
 from pathsnap.network import RoadNetwork
@@ -82,6 +83,11 @@ def _read_model(path: Path):
     model = joblib.load(path)
     if not callable(getattr(model, "predict_proba", None)):
         raise ValueError("Model artifact must implement predict_proba")
+    if not np.array_equal(getattr(model, "classes_", None), [0, 1]):
+        raise ValueError("Model artifact must score candidate classes 0 and 1 in that order")
+    feature_names = getattr(model, "feature_names_in_", None)
+    if feature_names is not None and list(feature_names) != FEATURES:
+        raise ValueError("Model artifact feature columns do not match the prediction pipeline")
     return model
 
 
