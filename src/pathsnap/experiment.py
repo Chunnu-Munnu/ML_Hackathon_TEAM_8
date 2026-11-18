@@ -147,7 +147,7 @@ def run_experiment(name: str, family: str, estimator, config: dict,
                    seed: int = 42, save_model: bool = True) -> dict:
     out = MODELS_DIR / name
     out.mkdir(parents=True, exist_ok=True)
-    no_logloss = bool(getattr(estimator, "no_log_loss", False))   # e.g. the B0 0/1 baseline
+    no_logloss = bool(getattr(estimator, "no_log_loss", False))   # e.g. The B0 0/1 baseline
 
     # 1-2. data
     tr_rows, tr_points, excl = load_filtered_train(subsample_points, seed)
