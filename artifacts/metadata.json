@@ -1,0 +1,34 @@
+{
+  "created_utc": "2026-11-18T05:32:43+00:00",
+  "seed": 42,
+  "python": "3.11.9",
+  "packages": {
+    "numpy": "2.4.6",
+    "pandas": "3.1.1",
+    "scipy": "1.17.1",
+    "scikit-learn": "1.9.1",
+    "lightgbm": "4.7.0",
+    "xgboost": "3.2.0",
+    "optuna": "5.1.0",
+    "shapely": "2.2.0",
+    "pyproj": "3.7.2",
+    "fastapi": "0.163.2",
+    "streamlit": "1.67.0",
+    "folium": "1.0.0"
+  },
+  "candidates": {
+    "radius_m": 50.0,
+    "k": 8
+  },
+  "projection": "per-trip UTM zone from mean track longitude (EPSG 326xx north / 327xx south)",
+  "n_features": 39,
+  "model_file": null,
+  "hmm_config_file": null,
+  "excluded_train_trips": {
+    "rule": "train trips whose median GPS-to-reference-route alignment distance > 50.0 m (GPS and map do not line up; labels unreliable). Rows kept in train.parquet; dropped before model fitting.",
+    "trips": [
+      "00000033",
+      "00000054"
+    ]
+  }
+}
