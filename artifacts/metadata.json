@@ -1,5 +1,5 @@
 {
-  "created_utc": "2026-11-18T05:32:43+00:00",
+  "created_utc": "2026-11-18T06:20:28+00:00",
   "seed": 42,
   "python": "3.11.9",
   "packages": {
@@ -22,13 +22,28 @@
   },
   "projection": "per-trip UTM zone from mean track longitude (EPSG 326xx north / 327xx south)",
   "n_features": 39,
-  "model_file": null,
-  "hmm_config_file": null,
+  "model_file": "model.joblib",
+  "hmm_config_file": "hmm_config.json",
   "excluded_train_trips": {
     "rule": "train trips whose median GPS-to-reference-route alignment distance > 50.0 m (GPS and map do not line up; labels unreliable). Rows kept in train.parquet; dropped before model fitting.",
     "trips": [
       "00000033",
       "00000054"
     ]
-  }
+  },
+  "model_class": "LGBMClassifier",
+  "smoke_test": {
+    "trip_id": "00000000",
+    "n_points": 2503,
+    "timings": {
+      "network_s": 0.234,
+      "features_s": 0.1363,
+      "model_s": 0.0822,
+      "hmm_s": 0.7771,
+      "total_s": 1.2297
+    }
+  },
+  "model_name": "lgbm",
+  "model_note": "Selected by grouped 5-fold CV on train (best Top-1 and macro F1, lowest log loss). Untuned configuration; replaced by the Optuna-tuned model after hyperparameter search.",
+  "hmm_config_note": "Default decoder parameters; replaced after decoder tuning."
 }
