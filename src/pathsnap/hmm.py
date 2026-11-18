@@ -25,8 +25,13 @@ import pandas as pd
 from .geo import point_segment
 from .network import RoadNetwork
 
-DEFAULT_HMM_CFG = {"lam": 1.0, "beta": 10.0, "sigma": 8.0, "v_max": 60.0, "gap_s": 30.0,
-                   "backward_tol_m": 10.0, "route_cutoff_m": 3000.0, "min_logp": -50.0}
+DEFAULT_HMM_CFG = {"lam": 0.3, "beta": 5.0, "sigma": 8.0, "v_max": 60.0, "gap_s": 30.0,
+                   "backward_tol_m": 10.0, "route_cutoff_m": 3000.0, "min_logp": -50.0,
+                   # signed_backward=1: a backward move along the same (or the preceding) arc is scored as a
+                   # negative driving distance instead of a detour, so 1 Hz GPS jitter never breaks the chain
+                   # while a run of points on the wrong-direction twin is penalised every step.
+                   # speed_hard=0: implausible speeds are penalised through |d_route - d_gps| instead of -inf.
+                   "signed_backward": 1, "speed_hard": 0}
 
 _NEG_INF = -np.inf
 
@@ -88,6 +93,7 @@ def prepare(cands: pd.DataFrame, net: RoadNetwork, cfg: dict | None = None,
 
     cutoff = cfg["route_cutoff_m"]
     tol = cfg["backward_tol_m"]
+    signed = bool(cfg.get("signed_backward", 1))
     length, u, v = net.length, net.u, net.v
     d_route: list = [None] * m
     for k in range(1, m):
@@ -110,11 +116,24 @@ def prepare(cands: pd.DataFrame, net: RoadNetwork, cfg: dict | None = None,
             mid = np.where(ok, d[idx_c], np.inf)
             row = (1.0 - ta[ai]) * length[a] + mid + tb * lb
             same = B == a
+            if signed:
+                # GPS jitter at 1 Hz often projects a point slightly *behind* the previous one. Instead of
+                # forcing a detour around the network (which breaks the chain), score the backward move as
+                # a negative driving distance, so |d_route - d_gps| penalises it smoothly: cheap for a
+                # stationary wobble, expensive for a run of points on the wrong-direction twin.
+                back_same = same & (tb < ta[ai])
+                back = -(ta[ai] - tb) * length[a]
+                row = np.where(back_same, back, row)
+                prev_arc = v[B] == u[a]                      # b directly precedes a: stepped back over a node
+                back_node = -(ta[ai] * length[a] + (1.0 - tb) * lb)
+                use = prev_arc & ~same & (np.abs(back_node) < np.abs(row))
+                row = np.where(use, back_node, row)
             if same.any():
                 fwd = same & (tb >= ta[ai])
                 row = np.where(fwd, (tb - ta[ai]) * length[a], row)
-                jitter = same & (tb < ta[ai]) & ((ta[ai] - tb) * length[a] <= tol)
-                row = np.where(jitter, 0.0, row)
+                if not signed:
+                    jitter = same & (tb < ta[ai]) & ((ta[ai] - tb) * length[a] <= tol)
+                    row = np.where(jitter, 0.0, row)
             M[ai] = row
         d_route[k] = M
 
@@ -171,7 +190,10 @@ def decode_prepared(prep: Prepared, cfg: dict | None = None, emission: str = "pr
         with np.errstate(invalid="ignore"):
             logT = -np.abs(dR - prep.d_gps[k]) / beta
             logT = np.maximum(logT, min_logp)
-            logT = np.where(np.isfinite(dR) & (dR <= v_max * prep.dt[k] + 50.0), logT, _NEG_INF)
+            feasible = np.isfinite(dR)
+            if bool(cfg.get("speed_hard", 0)):
+                feasible &= dR <= v_max * prep.dt[k] + 50.0
+            logT = np.where(feasible, logT, _NEG_INF)
             scores = delta[:, None] + logT
         best = scores.max(axis=0)
         if not np.isfinite(best).any():

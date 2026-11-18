@@ -1,6 +1,7 @@
 """Tune the HMM decoder parameters with Bayesian optimisation (Optuna TPE).
 
-Search space : lam in [0.3, 2], beta in [2, 50] (log), v_max in [40, 80], gap_s in [10, 120]
+Search space : lam in [0.1, 2] (log), beta in [1, 50] (log), v_max in [40, 80], gap_s in [10, 120]
+Decoder mode : signed backward moves + soft speed penalty (see hmm.DEFAULT_HMM_CFG)
 Objective    : point-weighted C+H point Top-1 on the 10 student-test trips, using the chosen model's
                student_test_proba.parquet. Student-test is a permitted development partition; evaluator data is
                never touched. (Because the decoder is tuned on student-test, the student-test C+H numbers are
@@ -92,8 +93,8 @@ def main() -> None:
 
     def objective(trial: optuna.Trial) -> float:
         cfg = {**DEFAULT_HMM_CFG,
-               "lam": trial.suggest_float("lam", 0.3, 2.0),
-               "beta": trial.suggest_float("beta", 2.0, 50.0, log=True),
+               "lam": trial.suggest_float("lam", 0.1, 2.0, log=True),
+               "beta": trial.suggest_float("beta", 1.0, 50.0, log=True),
                "v_max": trial.suggest_float("v_max", 40.0, 80.0),
                "gap_s": trial.suggest_float("gap_s", 10.0, GAP_MAX)}
         s, br = evaluate(cfg)
