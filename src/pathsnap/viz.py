@@ -5,10 +5,13 @@ from __future__ import annotations
 import folium
 import numpy as np
 
+from .geo import point_segment
 from .io import Trip
 from .network import RoadNetwork
 
 GPS_COLOR = "#176bc0"
+NETWORK_COLOR = "#7c8793"
+MAX_NETWORK_ARCS = 5000
 START_COLOR = "#185e8a"
 END_COLOR = "#302b63"
 MAX_GPS_POINTS = 3000
@@ -56,6 +59,29 @@ def _finish_map(fmap: folium.Map, layers: list[tuple[str, str]]) -> folium.Map:
     return fmap
 
 
+def _nearby_arcs(net: RoadNetwork, radius_m: float) -> np.ndarray:
+    if not np.isfinite(radius_m) or radius_m < 0:
+        raise ValueError("network_buffer_m must be finite and nonnegative")
+    closest = np.full(net.n_arcs, np.inf)
+    for start in range(0, len(net.x), 1024):
+        x, y = net.x[start:start + 1024], net.y[start:start + 1024]
+        points, arcs = net.query_radius(x, y, radius_m)
+        dist, *_ = point_segment(
+            x[points], y[points], net.ux[arcs], net.uy[arcs], net.vx[arcs], net.vy[arcs],
+        )
+        np.minimum.at(closest, arcs, dist)
+    ids = np.flatnonzero(np.isfinite(closest))
+    order = np.lexsort((ids, closest[ids]))
+    return ids[order[:MAX_NETWORK_ARCS]]
+
+
+def _line_layer(fmap, name, segments, *, color, weight, opacity=1):
+    layer = folium.FeatureGroup(name=name).add_to(fmap)
+    if len(segments):
+        # A Leaflet multi-polyline keeps individual arcs separate.
+        folium.PolyLine(segments, color=color, weight=weight, opacity=opacity).add_to(layer)
+
+
 def trip_map(
     trip: Trip,
     net: RoadNetwork | None = None,
@@ -63,6 +89,13 @@ def trip_map(
     show_route: bool = True,
     network_buffer_m: float = 150.0,
 ) -> folium.Map:
-    """Map the observations of one trip."""
+    """Map the observations and nearby road network of one trip."""
     gps = trip.track[["lat", "lon"]].to_numpy()
-    return _finish_map(_gps_map(gps), [])
+    fmap = _gps_map(gps)
+    net = net if net is not None else RoadNetwork(trip)
+    nearby = _nearby_arcs(net, network_buffer_m)
+    name = "Road network (nearby)"
+    _line_layer(fmap, name, net.arc_lonlat(nearby), color=NETWORK_COLOR, weight=1, opacity=0.6)
+    fmap.keep_in_front(*(layer for layer in fmap._children.values()
+                         if getattr(layer, "layer_name", "") in {"GPS observations", "Start and end"}))
+    return _finish_map(fmap, [(name, NETWORK_COLOR)])
