@@ -6,8 +6,10 @@ ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = Path(os.environ.get("PATHSNAP_DATA", ROOT / "data"))
 TRAIN_DIR = DATA_DIR / "train"
 STUDENT_TEST_DIR = DATA_DIR / "student_test"
-# Evaluator trips: only the API reads this, only on demo day.
-EVAL_DIR = Path(os.environ.get("EVAL_DIR", STUDENT_TEST_DIR))
+# Evaluator trips: only the API reads this folder (never any training/tuning script).
+# Default: data/evaluator_test if it has been placed there, else the student-test trips (development stand-in).
+_EVAL_DEFAULT = DATA_DIR / "evaluator_test"
+EVAL_DIR = Path(os.environ.get("EVAL_DIR", _EVAL_DEFAULT if _EVAL_DEFAULT.is_dir() else STUDENT_TEST_DIR))
 
 RESULTS_DIR = ROOT / "results"
 FEATURES_DIR = RESULTS_DIR / "features"

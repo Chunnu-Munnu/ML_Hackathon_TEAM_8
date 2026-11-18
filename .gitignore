@@ -12,3 +12,5 @@ __pycache__/
 logs/*.log
 .env
 *.egg-info/
+# evaluator partition: placed locally on the API laptop only, never committed
+data/evaluator_test/
