@@ -1,0 +1,7 @@
+{
+  "rule": "train trips whose median GPS-to-reference-route alignment distance > 50.0 m (GPS and map do not line up; labels unreliable). Rows kept in train.parquet; dropped before model fitting.",
+  "trips": [
+    "00000033",
+    "00000054"
+  ]
+}
