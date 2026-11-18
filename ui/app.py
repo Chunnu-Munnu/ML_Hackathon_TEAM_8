@@ -7,6 +7,9 @@ from urllib.parse import urlsplit
 
 import requests
 import streamlit as st
+from streamlit_folium import st_folium
+
+from pathsnap.viz import reconstruction_map
 
 
 class ApiError(RuntimeError):
@@ -60,6 +63,45 @@ def show_health(api_url: str) -> bool:
     return False
 
 
+def _percent(value: float | None) -> str:
+    return f"{value:.1%}" if value is not None else "Unavailable"
+
+
+def show_prediction(result: dict) -> None:
+    metrics, timings = result["metrics"], result["timings"]
+    accuracy, continuity, observations, latency = st.columns(4)
+    accuracy.metric("Top-1 accuracy", _percent(metrics["top1_accuracy"]),
+                    help="Share of GPS observations assigned to the aligned reference arc.")
+    continuity.metric("Route continuity", _percent(metrics["continuity"]),
+                      help="Share of adjacent matched observations on the same or directly connected roads.")
+    observations.metric("GPS observations", f"{result['n_points']:,}")
+    latency.metric("Inference latency", f"{1000 * timings['inference_s']:,.1f} ms",
+                   help="Road network, features, classifier and HMM. Server-side scoring is timed separately.")
+
+    if result["gps"]:
+        fmap = reconstruction_map(result["gps"], result["pred_route"])
+        st_folium(fmap, height=540, use_container_width=True, returned_objects=[],
+                  key=f"route-map:{result['trip_id']}")
+        if len(result["gps"]) < result["n_points"]:
+            st.caption(f"Map shows {len(result['gps']):,} of {result['n_points']:,} GPS observations.")
+        if not result["pred_route"]:
+            st.info("The decoder returned no road segments for this trip.")
+    else:
+        st.info("The API returned no GPS coordinates for this trip.")
+
+    stage_labels = {
+        "load_s": "Read trip files", "network_s": "Build the road network",
+        "features_s": "Generate candidate features", "model_s": "Score candidates",
+        "hmm_s": "Decode the route (HMM)", "evaluation_s": "Score against the reference",
+        "inference_s": "Inference subtotal", "total_s": "Server processing total",
+    }
+    with st.expander("Detailed timings"):
+        st.table([
+            {"Stage": stage_labels.get(key, key), "Duration (ms)": round(1000 * timings[key], 2)}
+            for key in stage_labels if key in timings
+        ])
+
+
 def main() -> None:
     st.set_page_config(page_title="PathSnap | Route reconstruction", layout="wide")
     st.title("PathSnap")
@@ -91,7 +133,7 @@ def main() -> None:
 
     saved = st.session_state.get("prediction")
     if saved and saved[:2] == (api_url, trip_id):
-        st.success(f"Trip {trip_id} reconstructed")
+        show_prediction(saved[2])
     elif not ready:
         st.info("Reconstruction will be available when the API model and decoder are ready.")
 
