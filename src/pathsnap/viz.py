@@ -11,6 +11,8 @@ from .network import RoadNetwork
 
 GPS_COLOR = "#176bc0"
 NETWORK_COLOR = "#7c8793"
+REFERENCE_COLOR = "#20794e"
+PREDICTED_COLOR = "#c42d39"
 MAX_NETWORK_ARCS = 5000
 START_COLOR = "#185e8a"
 END_COLOR = "#302b63"
@@ -40,6 +42,7 @@ def _gps_map(gps) -> folium.Map:
             point.tolist(), radius=6, color="white", weight=2, fill=True,
             fill_color=color, fill_opacity=1, tooltip=label,
         ).add_to(endpoints)
+    fmap.keep_in_front(observations, endpoints)
     return fmap
 
 
@@ -89,13 +92,27 @@ def trip_map(
     show_route: bool = True,
     network_buffer_m: float = 150.0,
 ) -> folium.Map:
-    """Map the observations and nearby road network of one trip."""
+    """Map GPS, nearby roads, and optional reference and predicted directed arcs."""
     gps = trip.track[["lat", "lon"]].to_numpy()
     fmap = _gps_map(gps)
     net = net if net is not None else RoadNetwork(trip)
     nearby = _nearby_arcs(net, network_buffer_m)
     name = "Road network (nearby)"
     _line_layer(fmap, name, net.arc_lonlat(nearby), color=NETWORK_COLOR, weight=1, opacity=0.6)
-    fmap.keep_in_front(*(layer for layer in fmap._children.values()
-                         if getattr(layer, "layer_name", "") in {"GPS observations", "Start and end"}))
-    return _finish_map(fmap, [(name, NETWORK_COLOR)])
+    layers = [(name, NETWORK_COLOR)]
+
+    if show_route and trip.route is not None:
+        name = "Reference route"
+        _line_layer(fmap, name, net.arc_lonlat(net.canon[trip.route]), color=REFERENCE_COLOR, weight=5)
+        layers.append((name, REFERENCE_COLOR))
+    if pred_arcs is not None:
+        predicted = np.asarray(pred_arcs, dtype=np.int64)
+        if predicted.ndim != 1 or ((predicted < -1) | (predicted >= net.n_arcs)).any():
+            raise ValueError("pred_arcs must be a sequence of valid arc IDs or -1")
+        predicted = predicted[predicted >= 0]
+        predicted = predicted[np.r_[True, predicted[1:] != predicted[:-1]][:len(predicted)]]
+        name = "Predicted route"
+        _line_layer(fmap, name, net.arc_lonlat(predicted), color=PREDICTED_COLOR, weight=3)
+        layers.append((name, PREDICTED_COLOR))
+
+    return _finish_map(fmap, layers)
