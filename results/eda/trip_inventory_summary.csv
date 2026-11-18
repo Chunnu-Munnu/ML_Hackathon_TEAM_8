@@ -1,0 +1,3 @@
+split,trips,gps_points,min_points,median_points,max_points
+student_test,10,19160,262,1420.0,3958
+train,80,208417,361,1529.0,19313
