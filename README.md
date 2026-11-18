@@ -10,8 +10,8 @@ Streamlit UI (Laptop 2).
 ## Setup
 
 ```bash
-git clone https://github.com/Chunnu-Munnu/ML_HACKATHON.git
-cd ML_HACKATHON
+git clone https://github.com/Chunnu-Munnu/ML_Hackathon_TEAM_8.git
+cd ML_Hackathon_TEAM_8
 py -3.11 -m venv .venv
 .venv\Scripts\activate            # Linux/macOS: source .venv/bin/activate
 pip install -r requirements.txt
@@ -20,7 +20,7 @@ pip install -e .                  # makes `import pathsnap` work everywhere
 
 ### Data
 
-The raw data is not committed. Copy the provided folders so the layout is:
+The provided dataset is included in the repository:
 
 ```
 data/

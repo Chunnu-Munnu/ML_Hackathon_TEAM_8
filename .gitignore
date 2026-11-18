@@ -1,5 +1,4 @@
-# data (copy locally, see README)
-data/
+# generated feature tables (rebuild with: python scripts/build_dataset.py, ~15 s; train.parquet is ~73 MB)
 results/features/
 # envs / caches
 .venv/
@@ -13,4 +12,3 @@ __pycache__/
 logs/*.log
 .env
 *.egg-info/
-docs/TEAM_TASKS.md
