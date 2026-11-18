@@ -5,7 +5,7 @@ candidate road segments are generated per GPS point, a classifier scores each (p
 HMM/Viterbi decoder turns those scores into a connected route. A FastAPI backend (Laptop 1) serves predictions to a
 Streamlit UI (Laptop 2).
 
-> Work in progress — see `docs/TEAM_TASKS.md` for the team split and status.
+> Work in progress.
 
 ## Setup
 
@@ -65,5 +65,5 @@ notebooks/      EDA
 api/  ui/       FastAPI backend and Streamlit evaluator UI
 artifacts/      exported model + configs used by the API
 results/        all CSVs, plots, logs and maps backing the report
-docs/           team task split
+docs/           project documentation
 ```
