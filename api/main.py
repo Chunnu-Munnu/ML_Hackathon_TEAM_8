@@ -35,6 +35,7 @@ Coordinate = tuple[float, float]
 
 class PredictRequest(BaseModel):
     trip_id: str = Field(pattern=TRIP_ID_PATTERN, min_length=1, max_length=64)
+    model: str | None = Field(default=None, pattern=r"^[A-Za-z0-9_.-]{1,64}$")
 
 
 class PredictionMetrics(BaseModel):
@@ -52,6 +53,8 @@ class Prediction(BaseModel):
     gps: list[Coordinate]
     pred_route: list[tuple[Coordinate, Coordinate]]
     point_arcs: list[int]
+    network: list[tuple[Coordinate, Coordinate]] = []
+    model: str = "deployed"
     metrics: PredictionMetrics
     timings: dict[str, float]
 
@@ -175,6 +178,34 @@ def _score_route(
     return metrics
 
 
+MODELS_DIR = config.RESULTS_DIR / "models"
+MAX_NETWORK_SEGMENTS = 3000
+
+
+def _model_catalog() -> dict[str, dict]:
+    """Every trained model with a saved file (results/models/<name>/model.joblib) and its recorded scores."""
+    out = {}
+    for f in sorted(MODELS_DIR.glob("*/model.joblib")):
+        name = f.parent.name
+        info = {"name": name}
+        for fn in ("metrics.json", "config.json"):
+            p = f.parent / fn
+            if p.is_file():
+                d = json.loads(p.read_text(encoding="utf-8"))
+                info.update({k: v for k, v in d.items() if k in (
+                    "family", "cv_top1_mean", "cv_top1_std", "cv_macro_f1_mean", "cv_log_loss_mean", "train_top1",
+                    "st_top1", "st_macro_f1", "st_log_loss", "fit_s", "infer_s_per_trip", "subsample_points")})
+        out[name] = info
+    return out
+
+
+def _nearby_network(net: RoadNetwork, radius_m: float = 60.0) -> list:
+    """Road segments near the track (map context only; this is the trip's road network, not the reference)."""
+    from pathsnap.viz import _nearby_arcs
+    ids = _nearby_arcs(net, radius_m)[:MAX_NETWORK_SEGMENTS]
+    return net.arc_lonlat(ids) if len(ids) else []
+
+
 def create_app(
     eval_dir: Path | None = None,
     artifact_dir: Path | None = None,
@@ -236,6 +267,38 @@ def create_app(
     def trips():
         return {"trips": list(get_trips())}
 
+    model_cache: dict = {}
+
+    @app.get("/models")
+    def models():
+        catalog = _model_catalog()
+        deployed = (json.loads((artifact_dir / "metadata.json").read_text()) if (artifact_dir / "metadata.json").is_file()
+                    else {}).get("model_name")
+        hmm_rows = {}
+        hc = config.RESULTS_DIR / "hmm" / "hmm_comparison.csv"
+        if hc.is_file():
+            import csv
+            with open(hc, newline="", encoding="utf-8") as fh:
+                for r in csv.DictReader(fh):
+                    if r["trip_id"] == "ALL" and r["variant"] == "C+H":
+                        hmm_rows[r["model"]] = {"st_top1_hmm": float(r["top1"]), "st_continuity_hmm": float(r["continuity"])}
+        for k, v in catalog.items():
+            v.update(hmm_rows.get(k, {}))
+        return {"deployed": deployed, "models": list(catalog.values())}
+
+    def resolve_model(name: str | None):
+        runtime = app.state.runtime
+        if not name or name == "deployed":
+            return runtime.model, runtime.hmm_cfg, "deployed"
+        path = MODELS_DIR / name / "model.joblib"
+        if not path.is_file():
+            raise HTTPException(status_code=404, detail="Model not found")
+        if name not in model_cache:
+            model_cache[name] = _read_model(path)
+        cfg_path = config.RESULTS_DIR / "hmm" / "decoder_per_model" / f"{name}_config.json"
+        cfg = _read_hmm_config(cfg_path) if cfg_path.is_file() else runtime.hmm_cfg
+        return model_cache[name], cfg, name
+
     @app.get("/metrics")
     def metrics():
         """Precomputed experiment summary (results/summary.json): model comparison, tuning, HMM and
@@ -267,7 +330,8 @@ def create_app(
         try:
             trip = load_trip(trip_dir, with_route=False)
             load_s = perf_counter() - start
-            out = predict_trip(trip, runtime.model, runtime.hmm_cfg)
+            model_obj, hmm_cfg, model_name = resolve_model(request.model)
+            out = predict_trip(trip, model_obj, hmm_cfg)
             net = out["net"]
             point_arcs = np.asarray(out["point_arcs"], dtype=np.int64)
             if point_arcs.shape != (trip.n_points,) or (
@@ -293,14 +357,17 @@ def create_app(
                 trip_id=trip.trip_id, n_points=trip.n_points,
                 gps=gps.tolist(), pred_route=np.asarray(out["route_coords"], dtype=float).tolist(),
                 point_arcs=point_arcs.tolist(), timings=timings, metrics=metrics,
+                network=_nearby_network(net), model=model_name,
             )
+        except HTTPException:
+            raise
         except Exception as exc:
             logger.exception("Reconstruction failed for trip=%s", request.trip_id)
             raise HTTPException(status_code=500, detail="Route reconstruction failed") from exc
 
         logger.info(
-            "PREDICT trip=%s n_points=%d top1=%s continuity=%s total_s=%.4f gps_sent=%d",
-            trip.trip_id, trip.n_points, metrics.top1_accuracy, metrics.continuity,
+            "PREDICT trip=%s model=%s n_points=%d top1=%s continuity=%s total_s=%.4f gps_sent=%d",
+            trip.trip_id, result.model, trip.n_points, metrics.top1_accuracy, metrics.continuity,
             timings["total_s"], len(gps),
         )
         return result

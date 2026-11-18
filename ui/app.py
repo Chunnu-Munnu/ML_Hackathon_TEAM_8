@@ -14,7 +14,7 @@ import requests
 import streamlit as st
 from streamlit_folium import st_folium
 
-from pathsnap.viz import reconstruction_map
+from pathsnap.viz import reconstruction_map, view_for
 
 CSS = """
 <style>
@@ -101,9 +101,12 @@ def show_prediction(result: dict) -> None:
               help="Road network, features, classifier and HMM decoding (server-side scoring excluded).")
 
     if result["gps"]:
-        fmap = reconstruction_map(result["gps"], result["pred_route"])
-        st_folium(fmap, height=560, use_container_width=True, returned_objects=[],
-                  key=f"route-map:{result['trip_id']}")
+        st.markdown(f"**Trip {result['trip_id']}** · model `{result.get('model', 'deployed')}` · "
+                    f"{len(result['pred_route']):,} predicted road segments · blue = GPS, red = predicted route, grey = road network")
+        fmap = reconstruction_map(result["gps"], result["pred_route"], result.get("network"))
+        center, zoom = view_for(result["gps"])
+        st_folium(fmap, height=620, use_container_width=True, returned_objects=[], center=center, zoom=zoom,
+                  key=f"route-map:{result['trip_id']}:{result.get('model')}")
         if len(result["gps"]) < result["n_points"]:
             st.caption(f"Map shows {len(result['gps']):,} of {result['n_points']:,} GPS observations.")
         if not result["pred_route"]:
@@ -124,7 +127,39 @@ def show_prediction(result: dict) -> None:
         ]), hide_index=True, use_container_width=True)
 
 
-def reconstruct_tab(api_url: str, ready: bool) -> None:
+def model_picker(api_url: str) -> str | None:
+    """Left-panel model selector with the chosen model's recorded scores."""
+    try:
+        cat = api_json(api_url, "/models")
+    except ApiError:
+        return None
+    models = cat.get("models", [])
+    if not models:
+        return None
+    deployed = cat.get("deployed")
+    names = ["deployed"] + [m["name"] for m in models]
+    labels = {"deployed": f"Deployed model ({deployed})" if deployed else "Deployed model"}
+    st.sidebar.header("Model")
+    choice = st.sidebar.selectbox("Classifier used for reconstruction", names,
+                                  format_func=lambda n: labels.get(n, n), key="model_choice")
+    info = next((m for m in models if m["name"] == (deployed if choice == "deployed" else choice)), None)
+    if info:
+        st.sidebar.caption(f"Family: **{info.get('family', '—')}**")
+        ll, inf = info.get("st_log_loss"), info.get("infer_s_per_trip")
+        rows = [("CV Top-1 (train)", _percent(info.get("cv_top1_mean"))),
+                ("CV macro F1", f"{info['cv_macro_f1_mean']:.3f}" if info.get("cv_macro_f1_mean") is not None else "—"),
+                ("Student-test Top-1", _percent(info.get("st_top1"))),
+                ("Student-test + HMM", _percent(info.get("st_top1_hmm"))),
+                ("Log loss", f"{ll:.3f}" if ll is not None else "N/A"),
+                ("Inference / trip", f"{1000 * inf:.0f} ms" if inf is not None else "—")]
+        table = ["| Metric | Value |", "|---|---|"] + [f"| {k} | **{v}** |" for k, v in rows]
+        st.sidebar.markdown(chr(10).join(table))
+        if info.get("subsample_points"):
+            st.sidebar.caption(f"Trained on a {int(100 * info['subsample_points'])}% sample of GPS points.")
+    return choice
+
+
+def reconstruct_tab(api_url: str, ready: bool, model: str | None = None) -> None:
     try:
         trips = api_json(api_url, "/trips").get("trips", [])
     except ApiError as exc:
@@ -143,14 +178,17 @@ def reconstruct_tab(api_url: str, ready: bool) -> None:
         st.session_state.pop("prediction", None)
         with st.spinner(f"Reconstructing trip {trip_id} on the server..."):
             try:
-                prediction = api_json(api_url, "/predict", body={"trip_id": trip_id})
+                body = {"trip_id": trip_id}
+                if model:
+                    body["model"] = model
+                prediction = api_json(api_url, "/predict", body=body)
             except ApiError as exc:
                 st.error(str(exc))
             else:
                 st.session_state["prediction"] = (api_url, trip_id, prediction)
 
     saved = st.session_state.get("prediction")
-    if saved and saved[:2] == (api_url, trip_id):
+    if saved and saved[:2] == (api_url, trip_id) and saved[2].get("model", "deployed") == (model or "deployed"):
         show_prediction(saved[2])
     elif not ready:
         st.info("Reconstruction will be available when the API model and decoder are ready.")
@@ -218,10 +256,11 @@ def main() -> None:
         help="Address of the FastAPI server on Laptop 1, e.g. http://192.168.1.20:8000",
     ).strip().rstrip("/")
     ready = show_health(api_url)
+    model = model_picker(api_url)
 
     tab_run, tab_res = st.tabs(["Reconstruct route", "Results"])
     with tab_run:
-        reconstruct_tab(api_url, ready)
+        reconstruct_tab(api_url, ready, model)
     with tab_res:
         results_tab(api_url)
 

@@ -103,7 +103,7 @@ class ApiTests(unittest.TestCase):
     def test_prediction_scoring_is_separate_and_payload_contains_no_labels(self):
         prediction, scorer = self._fixture_prediction()
         self.assertEqual(set(prediction), {
-            "trip_id", "n_points", "gps", "pred_route", "point_arcs", "metrics", "timings",
+            "trip_id", "n_points", "gps", "pred_route", "point_arcs", "metrics", "timings", "network", "model",
         })
         self.assertEqual(prediction["point_arcs"], [0, 0])
         self.assertEqual(prediction["metrics"]["top1_accuracy"], 1.0)

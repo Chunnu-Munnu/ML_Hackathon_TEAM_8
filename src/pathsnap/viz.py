@@ -30,8 +30,8 @@ def _gps_map(gps) -> folium.Map:
     indices = np.linspace(0, len(points) - 1, min(len(points), MAX_GPS_POINTS), dtype=int)
     for idx in indices:
         folium.CircleMarker(
-            points[idx].tolist(), radius=2, color=GPS_COLOR, weight=1,
-            fill=True, fill_opacity=0.72, tooltip=f"GPS observation {idx + 1}",
+            points[idx].tolist(), radius=2, color=GPS_COLOR, weight=0,
+            fill=True, fill_opacity=0.45, tooltip=f"GPS observation {idx + 1}",
         ).add_to(observations)
 
     endpoints = folium.FeatureGroup(name="Start and end").add_to(fmap)
@@ -83,6 +83,7 @@ def _line_layer(fmap, name, segments, *, color, weight, opacity=1):
     if len(segments):
         # A Leaflet multi-polyline keeps individual arcs separate.
         folium.PolyLine(segments, color=color, weight=weight, opacity=opacity).add_to(layer)
+    return layer
 
 
 def trip_map(
@@ -119,9 +120,27 @@ def trip_map(
     return _finish_map(fmap, layers)
 
 
-def reconstruction_map(gps, predicted_segments) -> folium.Map:
-    """Map the GPS and predicted geometry returned by the API."""
+def view_for(gps) -> tuple[list[float], int]:
+    """Centre and zoom that frame the whole track (used explicitly so the map never opens zoomed out)."""
+    pts = np.asarray(gps, dtype=float)
+    lo, hi = pts.min(axis=0), pts.max(axis=0)
+    span_deg = max(hi[0] - lo[0], (hi[1] - lo[1]) * np.cos(np.radians((hi[0] + lo[0]) / 2)), 1e-4)
+    zoom = int(np.clip(np.floor(np.log2(360.0 / span_deg)) - 1, 3, 17))
+    return [float((lo[0] + hi[0]) / 2), float((lo[1] + hi[1]) / 2)], zoom
+
+
+def reconstruction_map(gps, predicted_segments, network_segments=None) -> folium.Map:
+    """Map the GPS observations, nearby road network and predicted route returned by the API."""
+    center, zoom = view_for(gps)
     fmap = _gps_map(gps)
+    fmap.location, fmap.options["zoom"] = center, zoom
+    layers = []
+    if network_segments:
+        name = "Road network (nearby)"
+        _line_layer(fmap, name, network_segments, color=NETWORK_COLOR, weight=1.5, opacity=0.55)
+        layers.append((name, NETWORK_COLOR))
     name = "Predicted route"
-    _line_layer(fmap, name, predicted_segments, color=PREDICTED_COLOR, weight=3)
-    return _finish_map(fmap, [(name, PREDICTED_COLOR)])
+    route = _line_layer(fmap, name, predicted_segments, color=PREDICTED_COLOR, weight=5, opacity=0.95)
+    layers.append((name, PREDICTED_COLOR))
+    fmap.keep_in_front(route)
+    return _finish_map(fmap, layers)
