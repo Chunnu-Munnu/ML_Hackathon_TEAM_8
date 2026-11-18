@@ -12,3 +12,4 @@ __pycache__/
 *.joblib.big
 logs/*.log
 .env
+*.egg-info/
