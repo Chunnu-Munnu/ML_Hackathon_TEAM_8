@@ -1,0 +1,2 @@
+split,n_points,median_m,p95_m,p99_m,max_m,n_trips_excluded_from_fitting
+train,208417,5.680993556976318,142.0964416503903,205.82268371582032,647.1812744140625,2
