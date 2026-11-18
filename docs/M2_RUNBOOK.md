@@ -1,6 +1,6 @@
 # Reproduce the PathSnap M2 work
 
-Run these PowerShell commands from the root of `m2-eda-api-ui`. The branch uses the dataset-bearing base `26784d3`. The official `main` changed to a different history during development and published the M4 files under `m4_file/`. The replay uses M3 and M4 at their recorded commits in separate worktrees.
+Run these PowerShell commands from the root of `m2-eda-api-ui`. The branch uses the dataset-bearing base `26784d3`. The replay pins the M3 harness and M4 decoder that produced the recorded results. The team later integrated both modules in `main` at `8725bea`, and the live check was repeated against that checkout.
 
 ## Python environment
 
@@ -20,6 +20,7 @@ Both trainers call M3's `run_experiment()`. The shared harness uses seed 42 and 
 
 ```powershell
 git fetch origin
+git fetch --no-tags origin 11bb601ca9fa1cbc77371bca616b57012c376af3 bf22596ec1bc7cbc42b784e16cb1ae5d644eb72b
 $parent = Split-Path $repoM2 -Parent
 $m3 = Join-Path $parent 'pathsnap-replay-m3'
 git worktree add --detach --no-checkout $m3 11bb601
@@ -147,4 +148,15 @@ The live check exercised all 19,160 observations across 10 student-test trips. T
 
 ## Team integration
 
-The team checkout needs M3's `pathsnap.experiment` and M4's `pathsnap.hmm` and `pathsnap.route_metrics` in the normal package layout. For deployment, place the team's selected model and decoder configuration at `artifacts/model.joblib` and `artifacts/hmm_config.json`, then use `python -m uvicorn api.main:app --host 0.0.0.0 --port 8000` with the deployment trip directory in `EVAL_DIR`. Set `PATHSNAP_API` on the Streamlit laptop to that server's URL. During inference the API reads GPS and network inputs. The scoring step reads the optional reference route afterward and publishes aggregate metrics.
+Team commit `8725bea` contains M3's harness and M4's decoder and scoring modules in their normal package paths. The M2 API and Streamlit replay with those modules reproduced all recorded per-trip scores and counts. After preparing the student-test artifacts above, this command starts the same combination with standard imports from the integrated checkout.
+
+```powershell
+$team = Join-Path $parent 'pathsnap-replay-team'
+git worktree add --detach --no-checkout $team 8725bea
+git -C $team sparse-checkout set --no-cone '/*' '!/data/'
+git -C $team read-tree -mu HEAD
+$env:PYTHONPATH = Join-Path $team 'src'
+& $python -m uvicorn api.main:app --host 127.0.0.1 --port 8000
+```
+
+The remaining handoff is to bring the final M2 changes into the team's integration history and publish the selected deployment artifacts. Place the team's selected model and decoder configuration at `artifacts/model.joblib` and `artifacts/hmm_config.json`. With the deployment trip directory in `EVAL_DIR`, run `python -m uvicorn api.main:app --host 0.0.0.0 --port 8000` from the integrated checkout. Set `PATHSNAP_API` on the Streamlit laptop to that server's URL. During inference the API reads GPS and network inputs. The scoring step reads the optional reference route afterward and publishes aggregate metrics.
