@@ -6,8 +6,10 @@ from pathlib import Path
 from types import ModuleType
 from unittest.mock import Mock, patch
 
+import joblib
 import numpy as np
 from fastapi.testclient import TestClient
+from sklearn.dummy import DummyClassifier
 
 from api import main
 from pathsnap.features import FEATURES
@@ -59,6 +61,12 @@ class ApiTests(unittest.TestCase):
         (self.artifacts_dir / "hmm_config.json").write_text('{"beta": 0}', encoding="utf-8")
         with TestClient(self.app()) as client:
             self.assertIn("Invalid hmm_config.json", client.get("/health").json()["issues"])
+
+    def test_wrong_classifier_labels_are_rejected_at_startup(self):
+        model = DummyClassifier().fit([[0], [1]], [0, 2])
+        joblib.dump(model, self.artifacts_dir / "model.joblib")
+        with TestClient(self.app()) as client:
+            self.assertIn("Invalid model.joblib", client.get("/health").json()["issues"])
 
     def _fixture_prediction(self):
         calls = []
