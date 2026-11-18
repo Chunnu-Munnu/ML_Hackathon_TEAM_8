@@ -13,3 +13,4 @@ __pycache__/
 logs/*.log
 .env
 *.egg-info/
+docs/TEAM_TASKS.md
