@@ -16,19 +16,42 @@ from types import ModuleType
 
 import joblib
 import numpy as np
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from pathsnap import config
-from pathsnap.io import list_trips, load_trip
+from pathsnap.io import list_trips, load_route, load_trip
+from pathsnap.labeling import align_route
+from pathsnap.network import RoadNetwork
 from pathsnap.pipeline import predict_trip
 
 TRIP_ID_PATTERN = r"^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+MAX_GPS_POINTS = 3000
+Coordinate = tuple[float, float]
 
 
 class PredictRequest(BaseModel):
     trip_id: str = Field(pattern=TRIP_ID_PATTERN, min_length=1, max_length=64)
+
+
+class PredictionMetrics(BaseModel):
+    top1_accuracy: float | None
+    continuity: float | None
+    n_breaks: int
+    route_f1: float | None
+
+
+class Prediction(BaseModel):
+    model_config = ConfigDict(allow_inf_nan=False)
+
+    trip_id: str
+    n_points: int
+    gps: list[Coordinate]
+    pred_route: list[tuple[Coordinate, Coordinate]]
+    point_arcs: list[int]
+    metrics: PredictionMetrics
+    timings: dict[str, float]
 
 
 @dataclass
@@ -94,7 +117,12 @@ def _load_runtime(artifact_dir: Path, logger: logging.Logger) -> Runtime:
             getattr(decoder, "DEFAULT_HMM_CFG", None), dict
         ):
             raise ImportError("Incompatible pathsnap.hmm module")
-        runtime.route_metrics = import_module("pathsnap.route_metrics")
+        route_metrics = import_module("pathsnap.route_metrics")
+        if not all(callable(getattr(route_metrics, name, None)) for name in (
+            "continuity", "point_accuracy", "route_prf",
+        )):
+            raise ImportError("Incompatible pathsnap.route_metrics module")
+        runtime.route_metrics = route_metrics
     except ImportError as exc:
         logger.warning("Decoder dependencies unavailable: %s", exc)
         runtime.issues.append("PathSnap HMM or route metrics module unavailable")
@@ -110,6 +138,34 @@ def _available_trips(eval_dir: Path) -> dict[str, Path]:
         and folder.resolve().parent == root
         and all((folder / f"{folder.name}.{ext}").is_file() for ext in ("track", "nodes", "arcs"))
     }
+
+
+def _score_route(
+    trip_dir: Path,
+    point_arcs: np.ndarray,
+    net: RoadNetwork,
+    route_metrics: ModuleType,
+    n_breaks: int,
+    logger: logging.Logger,
+) -> PredictionMetrics:
+    """Read the optional reference route only after reconstruction has finished."""
+    continuity = route_metrics.continuity(point_arcs, net)
+    metrics = PredictionMetrics(
+        top1_accuracy=None, continuity=float(continuity) if np.isfinite(continuity) else None,
+        n_breaks=n_breaks, route_f1=None,
+    )
+    try:
+        route = load_route(trip_dir)
+        if not len(route) or ((route < 0) | (route >= net.n_arcs)).any():
+            raise ValueError("Reference route is empty or contains invalid arc IDs")
+    except (OSError, ValueError) as exc:
+        logger.warning("Reference scoring unavailable for trip=%s (%s)", trip_dir.name, type(exc).__name__)
+        return metrics
+
+    labels, _, _ = align_route(net, route)
+    metrics.top1_accuracy = float(route_metrics.point_accuracy(point_arcs, labels))
+    metrics.route_f1 = float(route_metrics.route_prf(point_arcs, net.canon[route])["f1"])
+    return metrics
 
 
 def create_app(
@@ -139,6 +195,16 @@ def create_app(
     app = FastAPI(title="PathSnap API", version="1.0", lifespan=lifespan)
     app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["GET", "POST"],
                        allow_headers=["Content-Type"])
+    @app.middleware("http")
+    async def log_request(request: Request, call_next):
+        start = perf_counter()
+        response = await call_next(request)
+        app.state.logger.info(
+            "%s %r status=%d latency_s=%.4f",
+            request.method, request.url.path, response.status_code, perf_counter() - start,
+        )
+        return response
+
     @app.get("/health")
     def health():
         runtime = app.state.runtime
@@ -163,7 +229,7 @@ def create_app(
     def trips():
         return {"trips": list(get_trips())}
 
-    @app.post("/predict")
+    @app.post("/predict", response_model=Prediction)
     def predict(request: PredictRequest):
         trip_dir = get_trips().get(request.trip_id)
         if trip_dir is None:
@@ -173,29 +239,47 @@ def create_app(
             raise HTTPException(status_code=503, detail="; ".join(runtime.issues))
 
         start = perf_counter()
+        logger = app.state.logger
         try:
             trip = load_trip(trip_dir, with_route=False)
             load_s = perf_counter() - start
             out = predict_trip(trip, runtime.model, runtime.hmm_cfg)
+            net = out["net"]
             point_arcs = np.asarray(out["point_arcs"], dtype=np.int64)
-            if point_arcs.shape != (trip.n_points,):
-                raise ValueError("Pipeline must return one predicted arc per observation")
+            if point_arcs.shape != (trip.n_points,) or (
+                (point_arcs < -1) | (point_arcs >= net.n_arcs)
+            ).any():
+                raise ValueError("Pipeline must return one valid arc ID or -1 per observation")
+
+            score_start = perf_counter()
+            metrics = _score_route(
+                trip_dir, point_arcs, net, runtime.route_metrics,
+                int(out["info"].get("n_breaks", 0)), logger,
+            )
+            timings = {key: float(value) for key, value in out["timings"].items()}
+            timings["evaluation_s"] = perf_counter() - score_start
+            timings["inference_s"] = timings["total_s"]
+            timings["load_s"] = load_s
+            gps = np.asarray(out["gps"], dtype=float)
+            if len(gps) > MAX_GPS_POINTS:
+                indices = np.linspace(0, len(gps) - 1, MAX_GPS_POINTS, dtype=int)
+                gps = gps[indices]
+            timings["total_s"] = perf_counter() - start
+            result = Prediction(
+                trip_id=trip.trip_id, n_points=trip.n_points,
+                gps=gps.tolist(), pred_route=np.asarray(out["route_coords"], dtype=float).tolist(),
+                point_arcs=point_arcs.tolist(), timings=timings, metrics=metrics,
+            )
         except Exception as exc:
-            app.state.logger.exception("Inference failed for trip=%s", request.trip_id)
+            logger.exception("Reconstruction failed for trip=%s", request.trip_id)
             raise HTTPException(status_code=500, detail="Route reconstruction failed") from exc
 
-        timings = {key: float(value) for key, value in out["timings"].items()}
-        timings["inference_s"] = timings["total_s"]
-        timings["load_s"] = load_s
-        timings["total_s"] = perf_counter() - start
-        return {
-            "trip_id": trip.trip_id,
-            "n_points": trip.n_points,
-            "gps": np.asarray(out["gps"], dtype=float).tolist(),
-            "pred_route": np.asarray(out["route_coords"], dtype=float).tolist(),
-            "point_arcs": point_arcs.tolist(),
-            "timings": timings,
-        }
+        logger.info(
+            "PREDICT trip=%s n_points=%d top1=%s continuity=%s total_s=%.4f gps_sent=%d",
+            trip.trip_id, trip.n_points, metrics.top1_accuracy, metrics.continuity,
+            timings["total_s"], len(gps),
+        )
+        return result
 
     return app
 
