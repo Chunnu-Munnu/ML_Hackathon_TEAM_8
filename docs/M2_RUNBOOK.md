@@ -1,6 +1,6 @@
 # Reproduce the PathSnap M2 work
 
-Run these PowerShell commands from the root of `m2-eda-api-ui`. The branch uses the dataset-bearing base `26784d3`. The replay pins the M3 harness and M4 decoder that produced the recorded results. The team later integrated both modules in `main` at `8725bea`, and the live check was repeated against that checkout.
+Run these PowerShell commands from the repository root. The integrated checkout uses the team's published LightGBM and HMM artifacts. The historical replay below pins the sources used to produce the recorded M2 results.
 
 ## Python environment
 
@@ -13,6 +13,32 @@ uv pip install --python $python -r requirements.txt -e .
 ```
 
 The recorded runs used Python 3.11.17, NumPy 2.4.6, pandas 3.1.1, SciPy 1.17.1, scikit-learn 1.9.1, PyArrow 26.0.1, joblib 1.6.0, Shapely 2.2.0 and pyproj 3.7.2. The outputs used Matplotlib 3.11.2, Folium 1.0.0, FastAPI 0.163.2, Streamlit 1.67.0 and streamlit-folium 0.27.4.
+
+## Run the integrated API and dashboard
+
+Use the artifacts published in team commit `400490d` to serve the selected LightGBM and default HMM configuration. Start the API in the PowerShell window where you set up Python.
+
+```powershell
+$env:EVAL_DIR = (Resolve-Path data/student_test).Path
+$env:PATHSNAP_ARTIFACTS = (Resolve-Path artifacts).Path
+& $python -m uvicorn api.main:app --host 127.0.0.1 --port 8000
+```
+
+Start Streamlit from a second window at the repository root.
+
+```powershell
+$env:PATHSNAP_API = 'http://127.0.0.1:8000'
+.venv/Scripts/python.exe -m streamlit run ui/app.py --server.port 8501
+```
+
+Run the test commands below from a third window at the repository root.
+
+```powershell
+.venv/Scripts/python.exe -m unittest discover -s tests -p 'test_m2_api.py'
+.venv/Scripts/python.exe tests/m2_live_smoke.py --api http://127.0.0.1:8000 --ui http://127.0.0.1:8501
+```
+
+For the two-laptop setup, bind the API to `0.0.0.0`, set `EVAL_DIR` to the agreed deployment trip directory and point the Streamlit laptop's `PATHSNAP_API` at the server URL. The scoring step reads the optional reference route after inference and publishes aggregate metrics.
 
 ## Build features and train the models
 
@@ -114,7 +140,7 @@ runpy.run_path(sys.argv[0], run_name="__main__")
 '@ | & $python -
 ```
 
-## Run the API and dashboard
+## Replay the Decision Tree smoke test
 
 Start the API in the same PowerShell window as the artifact setup.
 
@@ -159,4 +185,4 @@ $env:PYTHONPATH = Join-Path $team 'src'
 & $python -m uvicorn api.main:app --host 127.0.0.1 --port 8000
 ```
 
-The remaining handoff is to bring the final M2 changes into the team's integration history and publish the selected deployment artifacts. Place the team's selected model and decoder configuration at `artifacts/model.joblib` and `artifacts/hmm_config.json`. With the deployment trip directory in `EVAL_DIR`, run `python -m uvicorn api.main:app --host 0.0.0.0 --port 8000` from the integrated checkout. Set `PATHSNAP_API` on the Streamlit laptop to that server's URL. During inference the API reads GPS and network inputs. The scoring step reads the optional reference route afterward and publishes aggregate metrics.
+The integrated LightGBM startup and live checks use the team artifacts above. The checked-in M2 scores and maps document the Decision Tree replay.
