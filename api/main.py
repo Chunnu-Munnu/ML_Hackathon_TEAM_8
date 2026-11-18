@@ -11,16 +11,24 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from importlib import import_module
 from pathlib import Path
+from time import perf_counter
 from types import ModuleType
 
 import joblib
+import numpy as np
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
 
 from pathsnap import config
-from pathsnap.io import list_trips
+from pathsnap.io import list_trips, load_trip
+from pathsnap.pipeline import predict_trip
 
 TRIP_ID_PATTERN = r"^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+
+
+class PredictRequest(BaseModel):
+    trip_id: str = Field(pattern=TRIP_ID_PATTERN, min_length=1, max_length=64)
 
 
 @dataclass
@@ -154,6 +162,40 @@ def create_app(
     @app.get("/trips")
     def trips():
         return {"trips": list(get_trips())}
+
+    @app.post("/predict")
+    def predict(request: PredictRequest):
+        trip_dir = get_trips().get(request.trip_id)
+        if trip_dir is None:
+            raise HTTPException(status_code=404, detail="Trip not found")
+        runtime = app.state.runtime
+        if runtime.issues:
+            raise HTTPException(status_code=503, detail="; ".join(runtime.issues))
+
+        start = perf_counter()
+        try:
+            trip = load_trip(trip_dir, with_route=False)
+            load_s = perf_counter() - start
+            out = predict_trip(trip, runtime.model, runtime.hmm_cfg)
+            point_arcs = np.asarray(out["point_arcs"], dtype=np.int64)
+            if point_arcs.shape != (trip.n_points,):
+                raise ValueError("Pipeline must return one predicted arc per observation")
+        except Exception as exc:
+            app.state.logger.exception("Inference failed for trip=%s", request.trip_id)
+            raise HTTPException(status_code=500, detail="Route reconstruction failed") from exc
+
+        timings = {key: float(value) for key, value in out["timings"].items()}
+        timings["inference_s"] = timings["total_s"]
+        timings["load_s"] = load_s
+        timings["total_s"] = perf_counter() - start
+        return {
+            "trip_id": trip.trip_id,
+            "n_points": trip.n_points,
+            "gps": np.asarray(out["gps"], dtype=float).tolist(),
+            "pred_route": np.asarray(out["route_coords"], dtype=float).tolist(),
+            "point_arcs": point_arcs.tolist(),
+            "timings": timings,
+        }
 
     return app
 
