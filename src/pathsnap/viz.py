@@ -19,11 +19,21 @@ END_COLOR = "#302b63"
 MAX_GPS_POINTS = 3000
 
 
+def view_for(gps) -> tuple[list[float], int]:
+    """Centre and zoom that frame the whole track (used explicitly so the map never opens zoomed out)."""
+    pts = np.asarray(gps, dtype=float)
+    lo, hi = pts.min(axis=0), pts.max(axis=0)
+    span_deg = max(hi[0] - lo[0], (hi[1] - lo[1]) * np.cos(np.radians((hi[0] + lo[0]) / 2)), 1e-4)
+    zoom = int(np.clip(np.floor(np.log2(360.0 / span_deg)) - 1, 3, 17))
+    return [float((lo[0] + hi[0]) / 2), float((lo[1] + hi[1]) / 2)], zoom
+
+
 def _gps_map(gps) -> folium.Map:
     if len(gps) == 0:
         raise ValueError("A map requires at least one GPS observation")
     points = np.asarray(gps, dtype=float)
-    fmap = folium.Map(location=points[0].tolist(), tiles="OpenStreetMap", zoom_start=14)
+    center, zoom = view_for(points)
+    fmap = folium.Map(location=center, tiles="OpenStreetMap", zoom_start=zoom)
     fmap.fit_bounds([points.min(axis=0).tolist(), points.max(axis=0).tolist()], max_zoom=17)
 
     observations = folium.FeatureGroup(name="GPS observations").add_to(fmap)
@@ -104,8 +114,9 @@ def trip_map(
 
     if show_route and trip.route is not None:
         name = "Reference route"
-        _line_layer(fmap, name, net.arc_lonlat(net.canon[trip.route]), color=REFERENCE_COLOR, weight=5)
+        ref_layer = _line_layer(fmap, name, net.arc_lonlat(net.canon[trip.route]), color=REFERENCE_COLOR, weight=6, opacity=0.8)
         layers.append((name, REFERENCE_COLOR))
+        fmap.keep_in_front(ref_layer)
     if pred_arcs is not None:
         predicted = np.asarray(pred_arcs, dtype=np.int64)
         if predicted.ndim != 1 or ((predicted < -1) | (predicted >= net.n_arcs)).any():
@@ -114,19 +125,11 @@ def trip_map(
         if len(predicted):
             predicted = predicted[np.r_[True, predicted[1:] != predicted[:-1]]]
         name = "Predicted route"
-        _line_layer(fmap, name, net.arc_lonlat(predicted), color=PREDICTED_COLOR, weight=3)
+        pred_layer = _line_layer(fmap, name, net.arc_lonlat(predicted), color=PREDICTED_COLOR, weight=3)
         layers.append((name, PREDICTED_COLOR))
+        fmap.keep_in_front(pred_layer)
 
     return _finish_map(fmap, layers)
-
-
-def view_for(gps) -> tuple[list[float], int]:
-    """Centre and zoom that frame the whole track (used explicitly so the map never opens zoomed out)."""
-    pts = np.asarray(gps, dtype=float)
-    lo, hi = pts.min(axis=0), pts.max(axis=0)
-    span_deg = max(hi[0] - lo[0], (hi[1] - lo[1]) * np.cos(np.radians((hi[0] + lo[0]) / 2)), 1e-4)
-    zoom = int(np.clip(np.floor(np.log2(360.0 / span_deg)) - 1, 3, 17))
-    return [float((lo[0] + hi[0]) / 2), float((lo[1] + hi[1]) / 2)], zoom
 
 
 def reconstruction_map(gps, predicted_segments, network_segments=None) -> folium.Map:
